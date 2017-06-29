@@ -1,13 +1,4 @@
-library(rFSA)
-library(parallel)
-library(hash)
-
-pos2key <- function(pos) { paste(pos,collapse = ",")}
-key2pos <- function(key) { eval(parse(text=paste0("c(", key, ")")))}
-
-
-
-#' Title
+#' FSA: A function to find best subsets and interactions in statistical models.
 #'
 #' @param formula an object of class "formula" (or one that can be coerced to that class): a symbolic description of the model to be fitted. 
 #' @param data a data frame, list or environment (or object coercible by as.data.frame to a data frame) containing the variables in the model.
@@ -21,12 +12,14 @@ key2pos <- function(key) { eval(parse(text=paste0("c(", key, ")")))}
 #' @param criterion which criterion function to either maximize or minimize. For linear models one can use: r.squared, adj.r.squared, cv5.lmFSA (5 Fold Cross Validation error), cv10.lmFSA (10 Fold Cross Validation error), apress (Allen's Press Statistic), int.p.val (Interaction P-value), AIC, BIC.
 #' @param minmax whether to minimize or maximize the criterion function
 #' @param usehist use history to potentially save computational time.
-#' @param ... 
+#' @param ... other arguments passed to fitfunc.
 #'
-#' @return
+#' @importFrom hash hash
+#' @importFrom parallel mclapply
+#' @return matrix of results
 #' @export
 #'
-#' @examples.
+#' @examples
 #' 
 #' N <- 100 #number of obs
 #' P <- 100 #number of variables
