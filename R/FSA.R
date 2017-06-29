@@ -61,7 +61,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE, m = 2,
     while(length(cur.pos)>0)
     {
         ##Find stepping positions
-        steps<-unique.array(matrix(unlist(lapply(1:length(cur.pos),FUN = function(x){swaps(cur = key2pos(cur.pos[x]),n = P)})),ncol = m,byrow = T),MARGIN = 1)
+        steps<-unique.array(matrix(unlist(lapply(1:length(cur.pos),FUN = function(x){swaps(cur = key2pos(cur.pos[x]),n = P,yindex=ypos)})),ncol = m,byrow = T),MARGIN = 1)
 
         ##Calculate criterion for each position
         form <- function(val)
@@ -83,7 +83,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE, m = 2,
             X=1:length(cur.pos), mc.cores=cores,
             FUN = function(x)
             {
-                step <- swaps(key2pos(cur.pos[x]), P)
+                step <- swaps(key2pos(cur.pos[x]), P,yindex=ypos)
                 criterions <- Cri[
                     sapply(X=1:ncol(step),
                            FUN = function(x){pos2key(step[,x])})]
