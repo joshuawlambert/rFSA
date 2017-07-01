@@ -130,7 +130,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE, m = 2,
         if(usehist) names(hist.pos) <- cur.pos
     }
     
-    
+    #formatting results for output
     for(i in 1:dim(table(sln))){
       prev=paste(lapply(1:dim(table(sln)),FUN=function(x){colnames(data)[eval(parse(text = paste("c(",names(table(sln))[x],")")))]})[[i]],collapse = ", ");
       if(i==1){prev1=NULL;crit=NULL;form.1=NULL}
