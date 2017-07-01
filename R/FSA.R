@@ -77,7 +77,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE, m = 2,
             {
                 key <- pos2key(steps[x,])
                 if(!has.key(key, Cri))
-                    c(criterion(method(formula=form(steps[x,]), data = data)),key)
+                    c(criterion(method(formula=form(steps[x,]), data = data,...)),key)
             })),ncol=2,byrow=T))
         tmp$X2<-as.character(tmp$X2); tmp$X1<-as.numeric(as.character(tmp$X1));
         tmp<-lapply(1:dim(tmp)[1],FUN = function(x){Cri[[tmp$X2[x]]]<-tmp$X1[x]})
