@@ -129,5 +129,21 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE, m = 2,
         cur.pos <- next.pos[!mask]
         if(usehist) names(hist.pos) <- cur.pos
     }
-    return(sln)
+    
+    
+    for(i in 1:dim(table(sln))){
+      prev=paste(lapply(1:dim(table(sln)),FUN=function(x){colnames(data)[eval(parse(text = paste("c(",names(table(sln))[x],")")))]})[[i]],collapse = ", ");
+      if(i==1){prev1=NULL;crit=NULL;form.1=NULL}
+      prev1=c(prev1,prev)
+      form.1<-c(form.1,format(form(eval(parse(text = paste("c(",names(table(sln))[i],")"))))))
+      crit<-c(crit,criterion(method(formula=form(eval(parse(text = paste("c(",names(table(sln))[i],")")))), data = data,...)))
+    }
+    
+    solutions<-data.frame("FS Num"=1:dim(table(sln)),
+                          Formula=form.1,
+                          Positions=names(table(sln)),"Variable Names"=prev1,
+                          Criterion=crit,
+                          "Times"=as.numeric(table(sln))
+                          )
+    return(solutions)
 }
