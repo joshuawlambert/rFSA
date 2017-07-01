@@ -58,25 +58,29 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE, m = 2,
     }
     cur.pos <- starts
     sln <- c()
+    
+    form <- if(interactions==F){function(val){as.formula(paste0(yname, "~", paste(fixvar,collapse = "+"),"+",paste(allname[val], collapse="+")))}
+      } else{function(val){as.formula(paste0(yname, "~", paste(fixvar,collapse = "+"),"+", paste(allname[val], collapse="*")))}}
+   
+    
     while(length(cur.pos)>0)
     {
         ##Find stepping positions
         steps<-unique.array(matrix(unlist(lapply(1:length(cur.pos),FUN = function(x){swaps(cur = key2pos(cur.pos[x]),n = P+1,yindex=ypos)})),ncol = m,byrow = T),MARGIN = 1)
 
         ##Calculate criterion for each position
-        form <- function(val)
-        {
-            as.formula(paste0(yname, "~", paste(allname[val], collapse="+")))
-        }
+        
         Cri <- hash()
-        mclapply(
+        tmp<-data.frame(matrix(unlist(mclapply(
             X=1:nrow(steps), mc.cores=cores,
             FUN = function(x)
             {
                 key <- pos2key(steps[x,])
                 if(!has.key(key, Cri))
-                    Cri[[key]] <- criterion(method(formula=form(steps[x,]), data = data,...))
-            })
+                    c(criterion(method(formula=form(steps[x,]), data = data)),key)
+            })),ncol=2,byrow=T))
+        tmp$X2<-as.character(tmp$X2); tmp$X1<-as.numeric(as.character(tmp$X1));
+        tmp<-lapply(1:dim(tmp)[1],FUN = function(x){Cri[[tmp$X2[x]]]<-tmp$X1[x]})
         
         ##Find the best next position for each current position
         tmp <- mclapply(
