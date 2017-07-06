@@ -7,7 +7,6 @@
 #' @param yindex index of response variable.
 #' @return a matrix with the possible forms by column.
 #' @importFrom graphics par plot
-#' @importFrom methods show
 #' @importFrom stats AIC anova as.formula cov fitted formula glm influence lm predict resid var
 #' @importFrom utils capture.output tail
 #' @export
