@@ -46,6 +46,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE, m = 2,
     xpos <- setdiff(1:(P+1), ypos)
     criterion <- criterion
     method <- fitfunc
+    which.best <- switch(tolower(minmax), min=which.min, max=which.max)
 
     ##Generate random starting positions
     starts <- replicate(n=numrs, expr=pos2key(sort(sample(xpos, m, replace = F))))
@@ -61,7 +62,8 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE, m = 2,
     
     form <- if(interactions==F){function(val){as.formula(paste0(yname, "~", paste(fixvar,collapse = "+"),"+",paste(allname[val], collapse="+")))}
       } else{function(val){as.formula(paste0(yname, "~", paste(fixvar,collapse = "+"),"+", paste(allname[val], collapse="*")))}}
-   
+
+    Cri <- hash() # Initilize criterion records
     
     while(length(cur.pos)>0)
     {
@@ -69,18 +71,44 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE, m = 2,
         steps<-unique.array(matrix(unlist(lapply(1:length(cur.pos),FUN = function(x){swaps(cur = key2pos(cur.pos[x]),n = P+1,yindex=ypos)})),ncol = m,byrow = T),MARGIN = 1)
 
         ##Calculate criterion for each position
-        
-        Cri <- hash()
-        tmp<-data.frame(matrix(unlist(mclapply(
+
+        ## Modified by Liyu Gong 7/6/2017
+        ## Initilize of criterion records should be put
+        ## out of the while loop
+        ##Cri <- hash()
+
+        ##************************************************************
+        ## Modified by Liyu Gong @ 7/6/2017
+        ## This implementation to fix the bug is good, but we still
+        ## need to deal with the situation when tmp is NULL. So I
+        ## modify it
+        ##------------------------------------------------------------
+        ## tmp<-data.frame(matrix(unlist(mclapply(
+        ##     X=1:nrow(steps), mc.cores=cores,
+        ##     FUN = function(x)
+        ##     {
+        ##         key <- pos2key(steps[x,])
+        ##         if(!has.key(key, Cri))
+        ##             c(criterion(method(formula=form(steps[x,]), data = data,...)),key)
+        ##     })),ncol=2,byrow=T))
+        ## tmp$X2<-as.character(tmp$X2); tmp$X1<-as.numeric(as.character(tmp$X1));
+        ## tmp<-lapply(1:dim(tmp)[1],FUN = function(x){Cri[[tmp$X2[x]]]<-tmp$X1[x]})
+        tmp <- mclapply(
             X=1:nrow(steps), mc.cores=cores,
             FUN = function(x)
             {
                 key <- pos2key(steps[x,])
                 if(!has.key(key, Cri))
-                    c(criterion(method(formula=form(steps[x,]), data = data,...)),key)
-            })),ncol=2,byrow=T))
-        tmp$X2<-as.character(tmp$X2); tmp$X1<-as.numeric(as.character(tmp$X1));
-        tmp<-lapply(1:dim(tmp)[1],FUN = function(x){Cri[[tmp$X2[x]]]<-tmp$X1[x]})
+                {
+                    newCri <- criterion(method(formula=form(steps[x,]), data = data))
+                    names(newCri) <- key
+                    return(newCri)
+                }
+                else return(NULL)
+            })
+        tmp <- unlist(tmp)
+        if(!is.null(tmp))
+            Cri[names(tmp)] <- tmp
         
         ##Find the best next position for each current position
         tmp <- mclapply(
@@ -91,7 +119,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE, m = 2,
                 criterions <- Cri[
                     sapply(X=1:ncol(step),
                            FUN = function(x){pos2key(step[,x])})]
-                keys(criterions)[which.min(values(criterions))]
+                keys(criterions)[which.best(values(criterions))]
             })
         next.pos <- unlist(tmp)
         names(next.pos) <- cur.pos
@@ -110,7 +138,6 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE, m = 2,
         }
         names(cur.sln) <- cur.pos
         sln <- c(sln, cur.sln[mask])
-
 
         if(usehist)
         {
