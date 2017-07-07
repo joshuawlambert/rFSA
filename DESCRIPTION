@@ -16,3 +16,4 @@ Description: Uses the lm() and glm() functions to fit models
 License: GPL-2
 LazyData: TRUE
 Imports: parallel, hash
+RoxygenNote: 6.0.1

@@ -14,7 +14,7 @@
 #' @param usehist use history to potentially save computational time.
 #' @param ... other arguments passed to fitfunc.
 #'
-#' @importFrom hash hash
+#' @importFrom hash hash has.key
 #' @importFrom parallel mclapply
 #' @return matrix of results
 #' @export
