@@ -54,10 +54,10 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE, m = 2,
     if(usehist)
     {
         hist.sln <- hash()
-        hist.pos <- as.list(starts)
-        names(hist.pos) <- starts
+        hist.key <- as.list(starts)
+        names(hist.key) <- starts
     }
-    cur.pos <- starts
+    cur.key <- starts
     sln <- c()
     
     form <- if(interactions==F){function(val){as.formula(paste0(yname, "~", paste(fixvar,collapse = "+"),"+",paste(allname[val], collapse="+")))}
@@ -65,10 +65,10 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE, m = 2,
 
     Cri <- hash() # Initilize criterion records
     
-    while(length(cur.pos)>0)
+    while(length(cur.key)>0)
     {
         ##Find stepping positions
-        steps<-unique.array(matrix(unlist(lapply(1:length(cur.pos),FUN = function(x){swaps(cur = key2pos(cur.pos[x]),n = P+1,yindex=ypos)})),ncol = m,byrow = T),MARGIN = 1)
+        steps<-unique.array(matrix(unlist(lapply(1:length(cur.key),FUN = function(x){swaps(cur = key2pos(cur.key[x]),n = P+1,yindex=ypos)})),ncol = m,byrow = T),MARGIN = 1)
 
         ##Calculate criterion for each position
 
@@ -112,49 +112,49 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE, m = 2,
         
         ##Find the best next position for each current position
         tmp <- mclapply(
-            X=1:length(cur.pos), mc.cores=cores,
+            X=1:length(cur.key), mc.cores=cores,
             FUN = function(x)
             {
-                step <- swaps(key2pos(cur.pos[x]), P+1,yindex=ypos)
+                step <- swaps(key2pos(cur.key[x]), P+1,yindex=ypos)
                 criterions <- Cri[
                     sapply(X=1:ncol(step),
                            FUN = function(x){pos2key(step[,x])})]
                 keys(criterions)[which.best(values(criterions))]
             })
-        next.pos <- unlist(tmp)
-        names(next.pos) <- cur.pos
-        if(usehist) stopifnot(length(cur.pos)==length(hist.pos))
+        next.key <- unlist(tmp)
+        names(next.key) <- cur.key
+        if(usehist) stopifnot(length(cur.key)==length(hist.key))
 
         ##Check if any solutions are found
-        mask <- cur.pos == next.pos
-        cur.sln <- rep(NA, length(cur.pos))
-        if(any(mask)) cur.sln[mask] <- cur.pos[mask]
+        mask <- cur.key == next.key
+        cur.sln <- rep(NA, length(cur.key))
+        if(any(mask)) cur.sln[mask] <- cur.key[mask]
         if(usehist)
         {
-            mask2 <- has.key(next.pos, hist.sln)
+            mask2 <- has.key(next.key, hist.sln)
             if(any(mask2))
-                cur.sln[mask2] <- values(hist.sln, next.pos[mask2])
+                cur.sln[mask2] <- values(hist.sln, next.key[mask2])
             mask <- mask | mask2
         }
-        names(cur.sln) <- cur.pos
+        names(cur.sln) <- cur.key
         sln <- c(sln, cur.sln[mask])
 
         if(usehist)
         {
             ##Update solution history
             stopifnot(is.vector(cur.sln))
-            for(key in cur.pos[mask])
-                hist.sln[hist.pos[[key]]] <- cur.sln[key]
+            for(key in cur.key[mask])
+                hist.sln[hist.key[[key]]] <- cur.sln[key]
         
             ##Update position history
-            for(key in cur.pos[!mask])
-                hist.pos[[key]] <- c(hist.pos[[key]], next.pos[key])
+            for(key in cur.key[!mask])
+                hist.key[[key]] <- c(hist.key[[key]], next.key[key])
         }
 
         ##Update settings and iterate
-        if(usehist) hist.pos <- hist.pos[!mask]
-        cur.pos <- next.pos[!mask]
-        if(usehist) names(hist.pos) <- cur.pos
+        if(usehist) hist.key <- hist.key[!mask]
+        cur.key <- next.key[!mask]
+        if(usehist) names(hist.key) <- cur.key
     }
     
     #formatting results for output
