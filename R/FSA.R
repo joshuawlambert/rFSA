@@ -11,10 +11,9 @@
 #' @param interactions whether to include interactions in model. Defaults to TRUE.
 #' @param criterion which criterion function to either maximize or minimize. For linear models one can use: r.squared, adj.r.squared, cv5.lmFSA (5 Fold Cross Validation error), cv10.lmFSA (10 Fold Cross Validation error), apress (Allen's Press Statistic), int.p.val (Interaction P-value), AIC, BIC.
 #' @param minmax whether to minimize or maximize the criterion function
-#' @param usehist use history to potentially save computational time.
 #' @param ... other arguments passed to fitfunc.
 #'
-#' @importFrom hash hash has.key
+#' @importFrom hash hash has.key keys values
 #' @importFrom parallel mclapply
 #' @return matrix of results
 #' @export
@@ -27,11 +26,11 @@
 #' 
 #' sln <- FSA(formula = "X101~1", data = data, cores = 1, m = 2,
 #' interactions = F, criterion = AIC, minmax = "min",
-#' numrs = 10,usehist=F)
+#' numrs = 10)
 #' sln
 FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE, m = 2,
                 numrs = 1, cores=1, interactions = T, criterion = AIC,
-                minmax="min", usehist = T,...)
+                minmax="min", ...)
 {
     formula <- as.formula(formula)
     data <- data.frame(data)
@@ -51,12 +50,6 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE, m = 2,
     ##Generate random starting positions
     starts <- replicate(n=numrs, expr=pos2key(sort(sample(xpos, m, replace = F))))
 
-    if(usehist)
-    {
-        hist.sln <- hash()
-        hist.key <- as.list(starts)
-        names(hist.key) <- starts
-    }
     cur.key <- starts
     sln <- c()
     
@@ -123,38 +116,16 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE, m = 2,
             })
         next.key <- unlist(tmp)
         names(next.key) <- cur.key
-        if(usehist) stopifnot(length(cur.key)==length(hist.key))
 
         ##Check if any solutions are found
         mask <- cur.key == next.key
         cur.sln <- rep(NA, length(cur.key))
         if(any(mask)) cur.sln[mask] <- cur.key[mask]
-        if(usehist)
-        {
-            mask2 <- has.key(next.key, hist.sln)
-            if(any(mask2))
-                cur.sln[mask2] <- values(hist.sln, next.key[mask2])
-            mask <- mask | mask2
-        }
         names(cur.sln) <- cur.key
         sln <- c(sln, cur.sln[mask])
 
-        if(usehist)
-        {
-            ##Update solution history
-            stopifnot(is.vector(cur.sln))
-            for(key in cur.key[mask])
-                hist.sln[hist.key[[key]]] <- cur.sln[key]
-        
-            ##Update position history
-            for(key in cur.key[!mask])
-                hist.key[[key]] <- c(hist.key[[key]], next.key[key])
-        }
-
         ##Update settings and iterate
-        if(usehist) hist.key <- hist.key[!mask]
         cur.key <- next.key[!mask]
-        if(usehist) names(hist.key) <- cur.key
     }
     
     #formatting results for output

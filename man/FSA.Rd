@@ -6,7 +6,7 @@
 \usage{
 FSA(formula, data, fitfunc = lm, fixvar = NULL, quad = FALSE, m = 2,
   numrs = 1, cores = 1, interactions = T, criterion = AIC,
-  minmax = "min", usehist = T, ...)
+  minmax = "min", ...)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to that class): a symbolic description of the model to be fitted.}
@@ -31,8 +31,6 @@ FSA(formula, data, fitfunc = lm, fixvar = NULL, quad = FALSE, m = 2,
 
 \item{minmax}{whether to minimize or maximize the criterion function}
 
-\item{usehist}{use history to potentially save computational time.}
-
 \item{...}{other arguments passed to fitfunc.}
 }
 \value{
@@ -49,6 +47,6 @@ data <- data.frame(matrix(rnorm(N*(P+1)), nrow = N, ncol = P+1))
 
 sln <- FSA(formula = "X101~1", data = data, cores = 1, m = 2,
 interactions = F, criterion = AIC, minmax = "min",
-numrs = 10,usehist=F)
+numrs = 10)
 sln
 }

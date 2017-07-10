@@ -11,7 +11,7 @@ data <- data.frame(matrix(rnorm(N*(P+1)), nrow = N, ncol = P+1))
 set.seed(1000)
 sln <- FSA(formula = "X101~1", data = data, cores = 1, m = 2,
            interactions = F, criterion = AIC, minmax = "min",
-           numrs = numrs,usehist=T)
+           numrs = numrs)
 
 test_that("multiplication works", {
     expect_equivalent(as.character(sln$Variable.Names), "X7, X83")
