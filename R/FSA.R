@@ -20,7 +20,7 @@
 #'
 #' @examples
 #' 
-#' N <- 100 #number of obs
+#' N <- 10 #number of obs
 #' P <- 100 #number of variables
 #' data <- data.frame(matrix(rnorm(N*(P+1)), nrow = N, ncol = P+1))
 #' 
@@ -28,9 +28,9 @@
 #' interactions = F, criterion = AIC, minmax = "min",
 #' numrs = 10)
 #' sln
-FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE, m = 2,
-                numrs = 1, cores=1, interactions = T, criterion = AIC,
-                minmax="min", ...)
+FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
+                m = 2, numrs = 1, cores=1, interactions = T,
+                criterion = AIC, minmax="min", ...)
 {
     formula <- as.formula(formula)
     data <- data.frame(data)
@@ -39,7 +39,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE, m = 2,
 
     yname <- all.vars(formula)[1]
     allname <- colnames(data)
-    stopifnot(all(c(yname,fixvar) %in% colnames(data)))
+    stopifnot(all(c(yname,fixvar) %in% allname))
     P <- length(allname)-1
     ypos <- which(allname == yname)
     xpos <- setdiff(1:(P+1), ypos)
@@ -61,7 +61,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE, m = 2,
     while(length(cur.key)>0)
     {
         ##Find stepping positions
-        steps<-unique.array(matrix(unlist(lapply(1:length(cur.key),FUN = function(x){swaps(cur = key2pos(cur.key[x]),n = P+1,yindex=ypos)})),ncol = m,byrow = T),MARGIN = 1)
+        steps<-unique.array(matrix(unlist(lapply(1:length(cur.key),FUN = function(x){swaps(cur = key2pos(cur.key[x]),n = P+1, quad=quad, yindex=ypos)})),ncol = m,byrow = T),MARGIN = 1)
 
         ##Calculate criterion for each position
 
@@ -108,7 +108,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE, m = 2,
             X=1:length(cur.key), mc.cores=cores,
             FUN = function(x)
             {
-                step <- swaps(key2pos(cur.key[x]), P+1,yindex=ypos)
+                step <- swaps(key2pos(cur.key[x]), P+1, quad=quad, yindex=ypos)
                 criterions <- Cri[
                     sapply(X=1:ncol(step),
                            FUN = function(x){pos2key(step[,x])})]
