@@ -64,28 +64,6 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
         steps<-unique.array(matrix(unlist(lapply(1:length(cur.key),FUN = function(x){swaps(cur = key2pos(cur.key[x]),n = P+1, quad=quad, yindex=ypos)})),ncol = m,byrow = T),MARGIN = 1)
 
         ##Calculate criterion for each position
-
-        ## Modified by Liyu Gong 7/6/2017
-        ## Initilize of criterion records should be put
-        ## out of the while loop
-        ##Cri <- hash()
-
-        ##************************************************************
-        ## Modified by Liyu Gong @ 7/6/2017
-        ## This implementation to fix the bug is good, but we still
-        ## need to deal with the situation when tmp is NULL. So I
-        ## modify it
-        ##------------------------------------------------------------
-        ## tmp<-data.frame(matrix(unlist(mclapply(
-        ##     X=1:nrow(steps), mc.cores=cores,
-        ##     FUN = function(x)
-        ##     {
-        ##         key <- pos2key(steps[x,])
-        ##         if(!has.key(key, Cri))
-        ##             c(criterion(method(formula=form(steps[x,]), data = data,...)),key)
-        ##     })),ncol=2,byrow=T))
-        ## tmp$X2<-as.character(tmp$X2); tmp$X1<-as.numeric(as.character(tmp$X1));
-        ## tmp<-lapply(1:dim(tmp)[1],FUN = function(x){Cri[[tmp$X2[x]]]<-tmp$X1[x]})
         tmp <- mclapply(
             X=1:nrow(steps), mc.cores=cores,
             FUN = function(x)
