@@ -71,7 +71,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
                 key <- pos2key(steps[x,])
                 if(!has.key(key, Cri))
                 {
-                    newCri <- criterion(method(formula=form(steps[x,]), data = data))
+                    newCri <- criterion(method(formula=form(steps[x,]), data = data,...))
                     names(newCri) <- key
                     return(newCri)
                 }
