@@ -11,6 +11,8 @@
 #' @param interactions whether to include interactions in model. Defaults to TRUE.
 #' @param criterion which criterion function to either maximize or minimize. For linear models one can use: r.squared, adj.r.squared, cv5.lmFSA (5 Fold Cross Validation error), cv10.lmFSA (10 Fold Cross Validation error), apress (Allen's Press Statistic), int.p.val (Interaction P-value), AIC, BIC.
 #' @param minmax whether to minimize or maximize the criterion function
+#' @param checkfeas vector of variables that could be a feasible solution. These variables will be used as the last random start.
+#' @param var4int specification of which variables to check for marginal feasiblilty. Default is NULL
 #' @param ... other arguments passed to fitfunc.
 #'
 #' @importFrom hash hash has.key keys values
@@ -30,7 +32,7 @@
 #' sln
 FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
                 m = 2, numrs = 1, cores=1, interactions = T,
-                criterion = AIC, minmax="min", ...)
+                criterion = AIC, minmax="min", checkfeas=NULL, var4int=NULL,...)
 {
     formula <- as.formula(formula)
     data <- data.frame(data)
@@ -48,7 +50,16 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     which.best <- switch(tolower(minmax), min=which.min, max=which.max)
 
     ##Generate random starting positions
-    starts <- replicate(n=numrs, expr=pos2key(sort(sample(xpos, m, replace = F))))
+    #if checkfeas != NULL and length(checkfeas)==m then put the the check feas in the last position of starts
+    if(is.null(checkfeas)){
+      starts <- replicate(n=numrs, expr=pos2key(sort(sample(xpos, m, replace = F))))
+    } else if(length(checkfeas)!=m){
+      return("sorry, the number of variables in checkfeas is not equal to m. Please try again.")
+    } else{
+      starts <- replicate(n=numrs, expr=pos2key(sort(sample(xpos, m, replace = F))))
+      starts[length(starts)]<-pos2key(which(colnames(data) %in% checkfeas))
+      }
+   
 
     cur.key <- starts
     sln <- c()
@@ -61,7 +72,12 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     while(length(cur.key)>0)
     {
         ##Find stepping positions
-        steps<-unique.array(matrix(unlist(lapply(1:length(cur.key),FUN = function(x){swaps(cur = key2pos(cur.key[x]),n = P+1, quad=quad, yindex=ypos)})),ncol = m,byrow = T),MARGIN = 1)
+        steps<-unique.array(matrix(unlist(lapply(1:length(cur.key),
+                                                 FUN = function(x){
+                                                   if(is.null(var4int)){swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)
+                                                   } else{swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)[,which(apply(swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)==which(colnames(data)==var4int),MARGIN = 2,FUN = any))]
+                                                   }
+          })),ncol = m,byrow = T),MARGIN = 1)
 
         ##Calculate criterion for each position
         tmp <- mclapply(
@@ -86,7 +102,11 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
             X=1:length(cur.key), mc.cores=cores,
             FUN = function(x)
             {
-                step <- swaps(key2pos(cur.key[x]), P+1, quad=quad, yindex=ypos)
+                step <- {
+                  if(is.null(var4int)){swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)
+                  } else{swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)[,which(apply(swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)==which(colnames(data)==var4int),MARGIN = 2,FUN = any))]
+                  }
+                }
                 criterions <- Cri[
                     sapply(X=1:ncol(step),
                            FUN = function(x){pos2key(step[,x])})]
@@ -114,12 +134,13 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
       form.1<-c(form.1,format(form(eval(parse(text = paste("c(",names(table(sln))[i],")"))))))
       crit<-c(crit,criterion(method(formula=form(eval(parse(text = paste("c(",names(table(sln))[i],")")))), data = data,...)))
     }
-    
-    solutions<-data.frame("FS Num"=1:dim(table(sln)),
-                          Formula=form.1,
+    sln_return<-data.frame(starts=starts,solutions=sln)
+    rownames(sln_return)<-NULL
+    solutions<-data.frame(FS.Num=1:dim(table(sln)),
+                          Formula=as.character(form.1),
                           Positions=names(table(sln)),"Variable Names"=prev1,
                           Criterion=crit,
                           "Times"=as.numeric(table(sln))
                           )
-    return(solutions)
+    return(list(results=sln_return,solutions=solutions))
 }
