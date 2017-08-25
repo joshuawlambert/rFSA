@@ -11,30 +11,30 @@
 #' @importFrom utils capture.output tail
 #' @export
 swaps<-function(cur,n,quad=FALSE,yindex){
-m <- length(cur)
-if (!quad) {
-  l <- (n - m) * m
-  possible <- matrix(rep(cur, l), nrow = l, byrow = T)
-  s <- 1:n
-  lapply(1:m, FUN = function(i) s <<- s[-which(s == cur[i])])
-  lapply(1:m, FUN = function(j) possible[((j - 1) * (n - 
-                                                       m) + 1):((j - 1) * (n - m) + (n - m)), j] <<- s)
-}
-if (quad) {
-  l <- (n - 1) * m
-  possible <- matrix(rep(cur, l), nrow = l, byrow = T)
-  s <- 1:n
-  smat <- matrix(rep(0, (n - 1) * m), ncol = m)
-  lapply(1:m, FUN = function(i) smat[, i] <<- s[-which(s == 
-                                                         cur[i])])
-  lapply(1:m, FUN = function(j) possible[((j - 1) * (n - 
-                                                       1) + 1):((j - 1) * (n - 1) + (n - 1)), j] <<- smat[, 
-                                                                                                          j])
-}
-vec <- cbind(cur, t(possible))
-vec<-unique(apply(vec, sort, MARGIN = 2), MARGIN = 2)
-vec<-vec[,-which(apply(apply(X = vec,MARGIN = 1,function(x){x==yindex}),MARGIN = 1,FUN = any))]
-return(vec)
+  m <- length(cur)
+  if (!quad) {
+    l <- (n - m) * m
+    possible <- matrix(rep(cur, l), nrow = l, byrow = T)
+    s <- 1:n
+    lapply(1:m, FUN = function(i) s <<- s[-which(s == cur[i])])
+    lapply(1:m, FUN = function(j) possible[((j - 1) * (n - 
+                                                         m) + 1):((j - 1) * (n - m) + (n - m)), j] <<- s)
+  }
+  if (quad) {
+    l <- (n - 1) * m
+    possible <- matrix(rep(cur, l), nrow = l, byrow = T)
+    s <- 1:n
+    smat <- matrix(rep(0, (n - 1) * m), ncol = m)
+    lapply(1:m, FUN = function(i) smat[, i] <<- s[-which(s == 
+                                                           cur[i])])
+    lapply(1:m, FUN = function(j) possible[((j - 1) * (n - 
+                                                         1) + 1):((j - 1) * (n - 1) + (n - 1)), j] <<- smat[, 
+                                                                                                            j])
+  }
+  vec <- cbind(cur, t(possible))
+  vec<-unique(apply(vec, sort, MARGIN = 2), MARGIN = 2)
+  vec<-vec[,-which(apply(apply(X = vec,MARGIN = 1,function(x){x==yindex}),MARGIN = 1,FUN = any))]
+  return(vec)
 }
 #' Variables to include in the >1st step of an mth order interaction model determined from the Feasible Soution Alorithm.
 #'
