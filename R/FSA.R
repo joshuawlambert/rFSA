@@ -60,14 +60,18 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     starts[length(starts)]<-pos2key(which(colnames(data) %in% checkfeas))
   }
   
-
+  ## cur.key stores the keys of current positions
+  ## during optimization.
   cur.key <- starts
   sln <- c()
   
   form <- if(interactions==F){function(val){as.formula(paste0(yname, "~", paste(fixvar,collapse = "+"),"+",paste(allname[val], collapse="+")))}
   } else{function(val){as.formula(paste0(yname, "~", paste(fixvar,collapse = "+"),"+", paste(allname[val], collapse="*")))}}
 
-  Cri <- hash() # Initilize criterion records
+  ## Initilize a hash table to store criterion for the computed
+  ## combinations. The keys used to index criterions are
+  ## produced by pos2key, and could be decoded by key2pos
+  Cri <- hash()
   
   while(length(cur.key)>0)
   {
@@ -79,7 +83,12 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
                                                }
                                              })),ncol = m,byrow = T),MARGIN = 1)
 
-    ##Calculate criterion for each position
+    ## Calculate criterion for each next step position
+    ## Basically, we will check the criterion hash table
+    ## If a combination's criterion already exists in
+    ## the hash table, we simply use it. Otherwise, we
+    ## will calculate the criterion and insert it into
+    ## the hash table
     tmp <- mclapply(
       X=1:nrow(steps), mc.cores=cores,
       FUN = function(x)
