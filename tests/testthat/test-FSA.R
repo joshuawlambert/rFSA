@@ -14,6 +14,6 @@ sln <- FSA(formula = "X101~1", data = data, cores = 1, m = 2,
            numrs = numrs)
 
 test_that("multiplication works", {
-    expect_equivalent(as.character(sln$Variable.Names), "X7, X83")
-    expect_equal(sln$Criterion, 266.028, tolerance=1e-2)
+    expect_equivalent(as.character(sln$solutions$Variable.Names), "X7, X83")
+    expect_equal(sln$solutions$Criterion, 266.028, tolerance=1e-2)
 })
