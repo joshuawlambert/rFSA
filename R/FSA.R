@@ -48,6 +48,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   criterion <- criterion
   method <- fitfunc
   which.best <- switch(tolower(minmax), min=which.min, max=which.max)
+  bad.cri <- switch(tolower(minmax), min=Inf, max=-Inf)
 
   ##Generate random starting positions
   #if checkfeas != NULL and length(checkfeas)==m then put the the check feas in the last position of starts
@@ -96,7 +97,8 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
         key <- pos2key(steps[x,])
         if(!has.key(key, Cri))
         {
-          newCri <- criterion(method(formula=form(steps[x,]), data = data,...))
+          newCri <- tryCatch(criterion(method(formula=form(steps[x,]), data = data,...)),
+                             error=function(cond) {bad.cri})
           names(newCri) <- key
           return(newCri)
         }
