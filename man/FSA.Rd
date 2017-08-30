@@ -6,7 +6,8 @@
 \usage{
 FSA(formula, data, fitfunc = lm, fixvar = NULL, quad = FALSE, m = 2,
   numrs = 1, cores = 1, interactions = T, criterion = AIC,
-  minmax = "min", checkfeas = NULL, var4int = NULL, ...)
+  minmax = "min", checkfeas = NULL, var4int = NULL,
+  max.missing.percent = 100, ...)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to that class): a symbolic description of the model to be fitted.}
@@ -34,6 +35,8 @@ FSA(formula, data, fitfunc = lm, fixvar = NULL, quad = FALSE, m = 2,
 \item{checkfeas}{vector of variables that could be a feasible solution. These variables will be used as the last random start.}
 
 \item{var4int}{specification of which variables to check for marginal feasiblilty. Default is NULL}
+
+\item{max.missing.percent}{if this many percent of observations in the data are missing, ignore that combination of predictor variables. Default is 100.}
 
 \item{...}{other arguments passed to fitfunc.}
 }
