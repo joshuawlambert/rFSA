@@ -13,6 +13,7 @@
 #' @param minmax whether to minimize or maximize the criterion function
 #' @param checkfeas vector of variables that could be a feasible solution. These variables will be used as the last random start.
 #' @param var4int specification of which variables to check for marginal feasiblilty. Default is NULL
+#' @param max.missing.percent if this many percent of observations in the data are missing, ignore that combination of predictor variables. Default is 100.
 #' @param ... other arguments passed to fitfunc.
 #'
 #' @importFrom hash hash has.key keys values
@@ -32,13 +33,18 @@
 #' sln
 FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
                 m = 2, numrs = 1, cores=1, interactions = T,
-                criterion = AIC, minmax="min", checkfeas=NULL, var4int=NULL,...)
+                criterion = AIC, minmax="min", checkfeas=NULL, var4int=NULL,
+                max.missing.percent=100,...)
 {
   formula <- as.formula(formula)
   data <- data.frame(data)
 
   if(.Platform$OS.type != "unix") cores = 1
 
+  if(!(is.atomic(max.missing.percent) & length(max.missing.percent)==1
+    & max.missing.percent >= 0 & max.missing.percent <= 100))
+    stop("max.missing.percent should a scalar in range [0,100]")
+  
   yname <- all.vars(formula)[1]
   allname <- colnames(data)
   stopifnot(all(c(yname,fixvar) %in% allname))
@@ -77,12 +83,13 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   while(length(cur.key)>0)
   {
     ##Find stepping positions
-    steps<-unique.array(matrix(unlist(lapply(1:length(cur.key),
-                                             FUN = function(x){
-                                               if(is.null(var4int)){swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)
-                                               } else{swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)[,which(apply(swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)==which(colnames(data)==var4int),MARGIN = 2,FUN = any))]
-                                               }
-                                             })),ncol = m,byrow = T),MARGIN = 1)
+    steps<-unique.array(matrix(unlist(lapply(
+      1:length(cur.key),
+      FUN = function(x){
+        if(is.null(var4int)){swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)
+        } else{swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)[,which(apply(swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)==which(colnames(data)==var4int),MARGIN = 2,FUN = any))]
+        }
+      })),ncol = m,byrow = T),MARGIN = 1)
 
     ## Calculate criterion for each next step position
     ## Basically, we will check the criterion hash table
@@ -97,8 +104,12 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
         key <- pos2key(steps[x,])
         if(!has.key(key, Cri))
         {
-          newCri <- tryCatch(criterion(method(formula=form(steps[x,]), data = data,...)),
-                             error=function(cond) {bad.cri})
+          if (max.missing.percent < 100 &
+                sum(apply(is.na(data[,steps[x,]]), 1, any))>max.missing.percent)
+            newCri = bad.cri
+          else
+            newCri <- tryCatch(criterion(method(formula=form(steps[x,]), data = data,...)),
+                               error=function(cond) {bad.cri})
           names(newCri) <- key
           return(newCri)
         }
