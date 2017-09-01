@@ -13,7 +13,7 @@
 #' @param minmax whether to minimize or maximize the criterion function
 #' @param checkfeas vector of variables that could be a feasible solution. These variables will be used as the last random start.
 #' @param var4int specification of which variables to check for marginal feasiblilty. Default is NULL
-#' @param max.missing.percent if this many percent of observations in the data are missing, ignore that combination of predictor variables. Default is 100.
+#' @param min.nonmissing the combination of predictors will be ignored unless this many of observations are not missing
 #' @param ... other arguments passed to fitfunc.
 #'
 #' @importFrom hash hash has.key keys values
@@ -34,16 +34,15 @@
 FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
                 m = 2, numrs = 1, cores=1, interactions = T,
                 criterion = AIC, minmax="min", checkfeas=NULL, var4int=NULL,
-                max.missing.percent=100,...)
+                min.nonmissing=1,...)
 {
   formula <- as.formula(formula)
   data <- data.frame(data)
 
   if(.Platform$OS.type != "unix") cores = 1
 
-  if(!(is.atomic(max.missing.percent) & length(max.missing.percent)==1
-    & max.missing.percent >= 0 & max.missing.percent <= 100))
-    stop("max.missing.percent should a scalar in range [0,100]")
+  if(!(is.atomic(min.nonmissing) & length(min.nonmissing)==1))
+    stop("min.nonmissing should be a scalar.")
   
   yname <- all.vars(formula)[1]
   allname <- colnames(data)
@@ -104,8 +103,8 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
         key <- pos2key(steps[x,])
         if(!has.key(key, Cri))
         {
-          if (max.missing.percent < 100 &
-                sum(apply(is.na(data[,steps[x,]]), 1, any))>max.missing.percent)
+          ## check if there are too many NAs
+          if (sum(!apply(is.na(data[,steps[x,]]), 1, any)) < min.nonmissing)
             newCri = bad.cri
           else
             newCri <- tryCatch(criterion(method(formula=form(steps[x,]), data = data,...)),
