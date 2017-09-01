@@ -57,11 +57,12 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
 
   ##Generate random starting positions
   #if checkfeas != NULL and length(checkfeas)==m then put the the check feas in the last position of starts
-  if(is.null(checkfeas)){
+  if (is.null(checkfeas))
     starts <- replicate(n=numrs, expr=pos2key(sort(sample(xpos, m, replace = F))))
-  } else if(length(checkfeas)!=m){
-    return("sorry, the number of variables in checkfeas is not equal to m. Please try again.")
-  } else{
+  else if (length(checkfeas)!=m)
+    stop("sorry, the number of variables in checkfeas is not equal to m. Please try again.")
+  else
+  {
     starts <- replicate(n=numrs, expr=pos2key(sort(sample(xpos, m, replace = F))))
     starts[length(starts)]<-pos2key(which(colnames(data) %in% checkfeas))
   }
