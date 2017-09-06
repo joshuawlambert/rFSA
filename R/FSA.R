@@ -119,14 +119,12 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
           pos <- key2pos(key)
           ## check if there are too many NAs
           if (sum(!apply(is.na(data[,c(pos, ypos)]), 1, any)) < min.nonmissing)
-            newCri = bad.cri
+            bad.cri
           else
-            newCri <- tryCatch(criterion(method(formula=form(pos), data = data,...)),
-                               error=function(cond) {bad.cri})
-          names(newCri) <- key
-          return(newCri)
+            tryCatch(criterion(method(formula=form(pos), data = data,...)),
+                     error=function(cond) {bad.cri})
         }))
-      Cri[names(new.Cri)] <- new.Cri
+      Cri[steps.noCri] <- new.Cri
     }
     
     ##Find the best next position for each current position
@@ -136,7 +134,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
       {
         step <- steps[[key]]
         criterions <- Cri[step]
-        return(keys(criterions)[which.best(values(criterions))])
+        keys(criterions)[which.best(values(criterions))]
       }
     ))
     names(next.key) <- cur.key
