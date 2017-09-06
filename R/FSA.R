@@ -83,13 +83,24 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   while(length(cur.key)>0)
   {
     ##Find stepping positions
-    steps<-unique.array(matrix(unlist(lapply(
-      1:length(cur.key),
-      FUN = function(x){
-        if(is.null(var4int)){swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)
-        } else{swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)[,which(apply(swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)==which(colnames(data)==var4int),MARGIN = 2,FUN = any))]
-        }
-      })),ncol = m,byrow = T),MARGIN = 1)
+    ## steps<-unique.array(matrix(unlist(lapply(
+    ##   1:length(cur.key),
+    ##   FUN = function(x){
+    ##     if(is.null(var4int)){swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)
+    ##     } else{swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)[,which(apply(swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)==which(colnames(data)==var4int),MARGIN = 2,FUN = any))]
+    ##     }
+    ##   })),ncol = m,byrow = T),MARGIN = 1)
+    steps <- lapply(
+      cur.key,
+      FUN = function(x)
+      {
+        tmp <- swaps(cur = key2pos(x), n=P+1, quad = quad,yindex = ypos)
+        if (!is.null(var4int))
+          tmp <- tmp[,which(apply(tmp==which(allname==var4int), MARGIN=2, FUN=any))]
+        apply(tmp, MARGIN=2, FUN=pos2key)
+      }
+    )
+    names(steps) <- cur.key
 
     ## Calculate criterion for each next step position
     ## Basically, we will check the criterion hash table
@@ -97,50 +108,43 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     ## the hash table, we simply use it. Otherwise, we
     ## will calculate the criterion and insert it into
     ## the hash table
-    tmp <- mclapply(
-      X=1:nrow(steps), mc.cores=cores,
-      FUN = function(x)
-      {
-        key <- pos2key(steps[x,])
-        if(!has.key(key, Cri))
+    steps.noCri <- unique(unlist(steps))
+    steps.noCri <- steps.noCri[!has.key(steps.noCri, Cri)];
+    if (length(steps.noCri) > 0 )
+    {
+      new.Cri <- unlist(mclapply(
+        steps.noCri, mc.cores=cores,
+        FUN = function(key)
         {
+          pos <- key2pos(key)
           ## check if there are too many NAs
-          if (sum(!apply(is.na(data[,steps[x,]]), 1, any)) < min.nonmissing)
+          if (sum(!apply(is.na(data[,c(pos, ypos)]), 1, any)) < min.nonmissing)
             newCri = bad.cri
           else
-            newCri <- tryCatch(criterion(method(formula=form(steps[x,]), data = data,...)),
+            newCri <- tryCatch(criterion(method(formula=form(pos), data = data,...)),
                                error=function(cond) {bad.cri})
           names(newCri) <- key
           return(newCri)
-        }
-        else return(NULL)
-      })
-    tmp <- unlist(tmp)
-    if(!is.null(tmp))
-      Cri[names(tmp)] <- tmp
+        }))
+      Cri[names(new.Cri)] <- new.Cri
+    }
     
     ##Find the best next position for each current position
-    tmp <- mclapply(
-      X=1:length(cur.key), mc.cores=cores,
-      FUN = function(x)
+    next.key <- unlist(mclapply(
+      cur.key, mc.cores=cores,
+      FUN = function(key)
       {
-        step <- {
-          if(is.null(var4int)){swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)
-          } else{swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)[,which(apply(swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)==which(colnames(data)==var4int),MARGIN = 2,FUN = any))]
-          }
-        }
-        criterions <- Cri[
-          sapply(X=1:ncol(step),
-                 FUN = function(x){pos2key(step[,x])})]
-        keys(criterions)[which.best(values(criterions))]
-      })
-    next.key <- unlist(tmp)
+        step <- steps[[key]]
+        criterions <- Cri[step]
+        return(keys(criterions)[which.best(values(criterions))])
+      }
+    ))
     names(next.key) <- cur.key
 
     ##Check if any solutions are found
     mask <- cur.key == next.key
     cur.sln <- rep(NA, length(cur.key))
-    if(any(mask)) cur.sln[mask] <- cur.key[mask]
+    cur.sln[mask] <- cur.key[mask]
     names(cur.sln) <- cur.key
     sln <- c(sln, cur.sln[mask])
 
