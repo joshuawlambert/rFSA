@@ -55,7 +55,6 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   ypos <- which(allname == yname)
   xpos <- setdiff(1:(P+1), ypos)
   criterion <- criterion
-  method <- fitfunc
   which.best <- switch(tolower(minmax), min=which.min, max=which.max)
   bad.cri <- switch(tolower(minmax), min=Inf, max=-Inf)
 
@@ -83,7 +82,6 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     str=paste0(str,paste0(allname[val], collapse = ifelse(isTRUE(interactions),"*","+")))
   }
   
-
   form <- function(val){as.formula(form.str(val))}
 
   ## Initilize a hash table to store criterion for the computed
@@ -132,8 +130,10 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
           if (sum(!apply(is.na(data[,c(pos, ypos)]), 1, any)) < min.nonmissing)
             bad.cri
           else
-            tryCatch(criterion(method(formula=form(pos), data = data,...)),
+          {
+            tryCatch(criterion(fitfunc(formula=form(pos), data = data,...)),
                      error=function(cond) {bad.cri})
+          }
         }))
       Cri[steps.noCri] <- new.Cri
     }
@@ -148,7 +148,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
         keys(criterions)[which.best(values(criterions))]
       }
     ))
-    names(unsolved.next) <- unsolved.cur
+    stopifnot(length(unsolved.cur)==length(unsolved.next))
 
     ##Check if any solutions are found
     mask <- unsolved.cur == unsolved.next
@@ -165,7 +165,8 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   ##************************************************************
   ## format outputs
   ##************************************************************
-  originalfit <- fitfunc(formula=formula, data=data)
+  originalfit <- tryCatch(fitfunc(formula=formula, data=data),
+                          error=function(e){NULL})
   call <- mget(names(formals()),sys.frame(sys.nframe()))
 
   solutions <- list()
