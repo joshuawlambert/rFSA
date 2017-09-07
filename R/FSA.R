@@ -81,6 +81,14 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
       paste0(yname, "~", paste(fixvar,collapse = "+"),"+", paste(allname[val], collapse="*"))
     }
 
+  form.str <- function(val)
+  {
+    str = paste0(yname,"~")
+    if(!is.null(fixvar)) str = paste0(str,fixvar, collapse = "+")
+    str=paste0(str,paste0(allname[val], collapse = ifelse(isTRUE(interactions),"*","+")))
+  }
+  
+
   form <- function(val){as.formula(form.str(val))}
 
   ## Initilize a hash table to store criterion for the computed
@@ -88,12 +96,13 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   ## produced by pos2key, and could be decoded by key2pos
   Cri <- hash()
 
-  info <- data.frame(start=starts, current=starts, solution=NA, iterations=0,
-                     stringsAsFactors = F)
+  info <- data.frame(
+    start=starts, current=starts, solution=NA, iteration=0,
+   check=0,stringsAsFactors = F)
   unsolved.mask <- is.na(info$solution)
   while(any(unsolved.mask))
   {
-    info$iterations[unsolved.mask] <- info$iterations[unsolved.mask] + 1
+    info$iteration[unsolved.mask] <- info$iteration[unsolved.mask] + 1
     unsolved.cur <- info$current[unsolved.mask]
 
     steps <- lapply(
@@ -107,6 +116,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
       }
     )
     names(steps) <- unsolved.cur
+    info$check[unsolved.mask] <- info$check[unsolved.mask] + sapply(steps,length)
 
     ## Calculate criterion for each next step position
     ## Basically, we will check the criterion hash table
@@ -156,17 +166,46 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     unsolved.mask <- is.na(info$solution)
   }
 
-  info$vars.start <- sapply(info$start, FUN=function(key){paste0(allname[key2pos(key)], collapse=",")})
-  info$vars.solution <- sapply(info$solution, FUN=function(key){paste0(allname[key2pos(key)], collapse=",")})
 
+  ##************************************************************
+  ## format outputs
+  ##************************************************************
+  originalfit <- fitfunc(formula=formula, data=data)
+  call <- mget(names(formals()),sys.frame(sys.nframe()))
+
+  solutions <- list()
+  for (k in 1:m)
+    solutions[[paste0("start.",k)]] <- sapply(
+      info$start,
+      FUN=function(key){allname[key2pos(key)[k]]})
+  for (k in 1:m)
+    solutions[[paste0("best.",k)]] <- sapply(
+      info$solution,
+      FUN=function(key){allname[key2pos(key)[k]]})
+  solutions$criterion <- info$criterion
+  solutions$swaps <- info$iteration
+  solutions <- data.frame(solutions, stringsAsFactors=F)
+  
   sln.summary <- table(info$solution)
   sln.keys <- names(sln.summary)
-  solution <- data.frame(
-    formula=sapply(sln.keys, FUN=function(key){form.str(key2pos(key))}),
-    criterion=values(Cri)[sln.keys],
-    variable=sapply(sln.keys, FUN=function(key){paste0(allname[key2pos(key)], collapse = ",")}),
-    stringsAsFactors = F
-  )
+  table <- list()
+  table$formula <- sapply(sln.keys, FUN=function(key){form.str(key2pos(key))})
+  for (k in 1:m)
+    table[[paste0("Var",k)]] <- sapply(
+      sln.keys,
+      FUN=function(key){allname[key2pos(key)[k]]})
+  table$criterion <- values(Cri)[sln.keys]
+  table$times <- as.numeric(sln.summary)
 
-  list(solution=solution, info=info, nchecks=length(Cri))
+  efficiency <- paste(
+    "You did",sum(length(Cri)), "model fittings and",
+    sum(info$check), "model checks compared to",
+    choose(n=P,k=m),"fittings and",choose(n=P,k=m),
+    "checks you would have done with exhaustive search.")
+
+  res <- list(originalfit=originalfit, call=call,
+              solutions=solutions, table=table,
+              efficiency=efficiency)
+  #class(res) <- "FSA"
+  return(res)
 }
