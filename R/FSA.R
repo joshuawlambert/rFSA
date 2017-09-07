@@ -71,27 +71,33 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   ## during optimization.
   cur.key <- starts
   sln <- c()
-  
-  form <- if(interactions==F){function(val){as.formula(paste0(yname, "~", paste(fixvar,collapse = "+"),"+",paste(allname[val], collapse="+")))}
-  } else{function(val){as.formula(paste0(yname, "~", paste(fixvar,collapse = "+"),"+", paste(allname[val], collapse="*")))}}
+
+  if (interactions==F)
+    form.str <- function(val){
+      paste0(yname, "~", paste(fixvar,collapse = "+"),"+",paste(allname[val], collapse="+"))
+    }
+  else
+    form.str <- function(val){
+      paste0(yname, "~", paste(fixvar,collapse = "+"),"+", paste(allname[val], collapse="*"))
+    }
+
+  form <- function(val){as.formula(form.str(val))}
 
   ## Initilize a hash table to store criterion for the computed
   ## combinations. The keys used to index criterions are
   ## produced by pos2key, and could be decoded by key2pos
   Cri <- hash()
-  
-  while(length(cur.key)>0)
+
+  info <- data.frame(start=starts, current=starts, solution=NA, iterations=0,
+                     stringsAsFactors = F)
+  unsolved.mask <- is.na(info$solution)
+  while(any(unsolved.mask))
   {
-    ##Find stepping positions
-    ## steps<-unique.array(matrix(unlist(lapply(
-    ##   1:length(cur.key),
-    ##   FUN = function(x){
-    ##     if(is.null(var4int)){swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)
-    ##     } else{swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)[,which(apply(swaps(cur = key2pos(cur.key[x]), n = P + 1, quad = quad,yindex = ypos)==which(colnames(data)==var4int),MARGIN = 2,FUN = any))]
-    ##     }
-    ##   })),ncol = m,byrow = T),MARGIN = 1)
+    info$iterations[unsolved.mask] <- info$iterations[unsolved.mask] + 1
+    unsolved.cur <- info$current[unsolved.mask]
+
     steps <- lapply(
-      cur.key,
+      unsolved.cur,
       FUN = function(x)
       {
         tmp <- swaps(cur = key2pos(x), n=P+1, quad = quad,yindex = ypos)
@@ -100,7 +106,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
         apply(tmp, MARGIN=2, FUN=pos2key)
       }
     )
-    names(steps) <- cur.key
+    names(steps) <- unsolved.cur
 
     ## Calculate criterion for each next step position
     ## Basically, we will check the criterion hash table
@@ -128,8 +134,8 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     }
     
     ##Find the best next position for each current position
-    next.key <- unlist(mclapply(
-      cur.key, mc.cores=cores,
+    unsolved.next <- unlist(mclapply(
+      unsolved.cur, mc.cores=cores,
       FUN = function(key)
       {
         step <- steps[[key]]
@@ -137,34 +143,30 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
         keys(criterions)[which.best(values(criterions))]
       }
     ))
-    names(next.key) <- cur.key
+    names(unsolved.next) <- unsolved.cur
 
     ##Check if any solutions are found
-    mask <- cur.key == next.key
-    cur.sln <- rep(NA, length(cur.key))
-    cur.sln[mask] <- cur.key[mask]
-    names(cur.sln) <- cur.key
-    sln <- c(sln, cur.sln[mask])
+    mask <- unsolved.cur == unsolved.next
+    cur.sln <- rep(NA, length(unsolved.cur))
+    cur.sln[mask] <- unsolved.cur[mask]
 
     ##Update settings and iterate
-    cur.key <- next.key[!mask]
+    info$solution[unsolved.mask] <- cur.sln
+    info$current[unsolved.mask] <- unsolved.next
+    unsolved.mask <- is.na(info$solution)
   }
-  
-  #formatting results for output
-  for(i in 1:dim(table(sln))){
-    prev=paste(lapply(1:dim(table(sln)),FUN=function(x){colnames(data)[eval(parse(text = paste("c(",names(table(sln))[x],")")))]})[[i]],collapse = ", ");
-    if(i==1){prev1=NULL;crit=NULL;form.1=NULL}
-    prev1=c(prev1,prev)
-    form.1<-c(form.1,format(form(eval(parse(text = paste("c(",names(table(sln))[i],")"))))))
-    crit<-c(crit,criterion(method(formula=form(eval(parse(text = paste("c(",names(table(sln))[i],")")))), data = data,...)))
-  }
-  sln_return<-data.frame(starts=starts,solutions=sln)
-  rownames(sln_return)<-NULL
-  solutions<-data.frame(FS.Num=1:dim(table(sln)),
-                        Formula=as.character(form.1),
-                        Positions=names(table(sln)),"Variable Names"=prev1,
-                        Criterion=crit,
-                        "Times"=as.numeric(table(sln))
-                        )
-  return(list(results=sln_return,solutions=solutions))
+
+  info$vars.start <- sapply(info$start, FUN=function(key){paste0(allname[key2pos(key)], collapse=",")})
+  info$vars.solution <- sapply(info$solution, FUN=function(key){paste0(allname[key2pos(key)], collapse=",")})
+
+  sln.summary <- table(info$solution)
+  sln.keys <- names(sln.summary)
+  solution <- data.frame(
+    formula=sapply(sln.keys, FUN=function(key){form.str(key2pos(key))}),
+    criterion=values(Cri)[sln.keys],
+    variable=sapply(sln.keys, FUN=function(key){paste0(allname[key2pos(key)], collapse = ",")}),
+    stringsAsFactors = F
+  )
+
+  list(solution=solution, info=info, nchecks=length(Cri))
 }
