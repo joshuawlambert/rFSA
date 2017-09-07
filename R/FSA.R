@@ -1,5 +1,7 @@
-#' FSA: A function to find best subsets and interactions in statistical models.
+#' FSA: Feasible Solution Algorithm
 #'
+#' @description 
+#' 
 #' @param formula an object of class "formula" (or one that can be coerced to that class): a symbolic description of the model to be fitted. 
 #' @param data a data frame, list or environment (or object coercible by as.data.frame to a data frame) containing the variables in the model.
 #' @param fitfunc the method that should be used to fit the model. For Example: lm, glm, or other methods that rely on formula, data, and other inputs.
@@ -31,6 +33,8 @@
 #' interactions = F, criterion = AIC, minmax = "min",
 #' numrs = 10)
 #' sln
+#'
+#' @describeIn FSA find best set of variables for statistical models
 FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
                 m = 2, numrs = 1, cores=1, interactions = T,
                 criterion = AIC, minmax="min", checkfeas=NULL, var4int=NULL,
@@ -71,15 +75,6 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   ## during optimization.
   cur.key <- starts
   sln <- c()
-
-  if (interactions==F)
-    form.str <- function(val){
-      paste0(yname, "~", paste(fixvar,collapse = "+"),"+",paste(allname[val], collapse="+"))
-    }
-  else
-    form.str <- function(val){
-      paste0(yname, "~", paste(fixvar,collapse = "+"),"+", paste(allname[val], collapse="*"))
-    }
 
   form.str <- function(val)
   {
@@ -196,6 +191,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
       FUN=function(key){allname[key2pos(key)[k]]})
   table$criterion <- values(Cri)[sln.keys]
   table$times <- as.numeric(sln.summary)
+  table <- data.frame(table, stringsAsFactors = F)
 
   efficiency <- paste(
     "You did",sum(length(Cri)), "model fittings and",
@@ -206,6 +202,14 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   res <- list(originalfit=originalfit, call=call,
               solutions=solutions, table=table,
               efficiency=efficiency)
-  #class(res) <- "FSA"
+  class(res) <- "FSA"
   return(res)
 }
+
+#' @export
+#' @describeIn FSA alias for \code{FSA(fitfunc=lm,...)}
+lmFSA <- function(...) {FSA(fitfunc = lm, ...)}
+
+#' @export
+#' @describeIn FSA alias for \code{FSA(fitfunc=glm,...)}
+glmFSA <- function(...) {FSA(fitfunc = glm, ...)}

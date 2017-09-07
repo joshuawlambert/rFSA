@@ -2,12 +2,18 @@
 % Please edit documentation in R/FSA.R
 \name{FSA}
 \alias{FSA}
-\title{FSA: A function to find best subsets and interactions in statistical models.}
+\alias{lmFSA}
+\alias{glmFSA}
+\title{FSA: Feasible Solution Algorithm}
 \usage{
 FSA(formula, data, fitfunc = lm, fixvar = NULL, quad = FALSE, m = 2,
   numrs = 1, cores = 1, interactions = T, criterion = AIC,
   minmax = "min", checkfeas = NULL, var4int = NULL, min.nonmissing = 1,
   ...)
+
+lmFSA(...)
+
+glmFSA(...)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to that class): a symbolic description of the model to be fitted.}
@@ -44,8 +50,17 @@ FSA(formula, data, fitfunc = lm, fixvar = NULL, quad = FALSE, m = 2,
 matrix of results
 }
 \description{
-FSA: A function to find best subsets and interactions in statistical models.
+
 }
+\section{Functions}{
+\itemize{
+\item \code{FSA}: find best set of variables for statistical models
+
+\item \code{lmFSA}: alias for \code{FSA(fitfunc=lm,...)}
+
+\item \code{glmFSA}: alias for \code{FSA(fitfunc=glm,...)}
+}}
+
 \examples{
 
 N <- 10 #number of obs
@@ -56,4 +71,5 @@ sln <- FSA(formula = "X101~1", data = data, cores = 1, m = 2,
 interactions = F, criterion = AIC, minmax = "min",
 numrs = 10)
 sln
+
 }
