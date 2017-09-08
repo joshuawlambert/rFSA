@@ -18,7 +18,7 @@
 #' @param min.nonmissing the combination of predictors will be ignored unless this many of observations are not missing
 #' @param ... other arguments passed to fitfunc.
 #'
-#' @importFrom hash hash has.key keys values
+#' @import hashmap
 #' @importFrom parallel mclapply
 #' @return matrix of results
 #' @export
@@ -73,13 +73,12 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   ## cur.key stores the keys of current positions
   ## during optimization.
   cur.key <- starts
-  sln <- c()
 
   form.str <- function(val)
   {
     str = paste0(yname,"~")
     if(!is.null(fixvar)) str = paste0(str,fixvar, collapse = "+")
-    str=paste0(str,paste0(allname[val], collapse = ifelse(isTRUE(interactions),"*","+")))
+    str=paste0(str,paste0(allname[val], collapse=ifelse(isTRUE(interactions),"*","+")))
   }
   
   form <- function(val){as.formula(form.str(val))}
@@ -87,7 +86,8 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   ## Initilize a hash table to store criterion for the computed
   ## combinations. The keys used to index criterions are
   ## produced by pos2key, and could be decoded by key2pos
-  Cri <- hash()
+  Cri <- hashmap("",1)
+  Cri$erase("")
 
   info <- data.frame(
     start=starts, current=starts, solution=NA, iteration=0,
@@ -118,7 +118,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     ## will calculate the criterion and insert it into
     ## the hash table
     steps.noCri <- unique(unlist(steps))
-    steps.noCri <- steps.noCri[!has.key(steps.noCri, Cri)];
+    steps.noCri <- steps.noCri[!Cri$has_key(steps.noCri)];
     if (length(steps.noCri) > 0 )
     {
       new.Cri <- unlist(mclapply(
@@ -135,7 +135,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
                      error=function(cond) {bad.cri})
           }
         }))
-      Cri[steps.noCri] <- new.Cri
+      Cri[[steps.noCri]] <- new.Cri
     }
     
     ##Find the best next position for each current position
@@ -144,13 +144,14 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
       FUN = function(key)
       {
         step <- steps[[key]]
-        criterions <- Cri[step]
-        keys(criterions)[which.best(values(criterions))]
+        step[which.best(Cri[[step]])]
       }
     ))
     stopifnot(length(unsolved.cur)==length(unsolved.next))
 
     ##Check if any solutions are found
+    ## mask <- (unsolved.cur == unsolved.next |
+    ##            unsolved.next %in% unique(info$solution))
     mask <- unsolved.cur == unsolved.next
     cur.sln <- rep(NA, length(unsolved.cur))
     cur.sln[mask] <- unsolved.cur[mask]
@@ -181,6 +182,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   solutions$criterion <- info$criterion
   solutions$swaps <- info$iteration
   solutions <- data.frame(solutions, stringsAsFactors=F)
+  rownames(solutions) <- NULL
   
   sln.summary <- table(info$solution)
   sln.keys <- names(sln.summary)
@@ -190,19 +192,21 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     table[[paste0("Var",k)]] <- sapply(
       sln.keys,
       FUN=function(key){allname[key2pos(key)[k]]})
-  table$criterion <- values(Cri)[sln.keys]
+  table$criterion <- Cri[[sln.keys]]
   table$times <- as.numeric(sln.summary)
   table <- data.frame(table, stringsAsFactors = F)
+  rownames(table) <- NULL
 
   efficiency <- paste(
-    "You did",sum(length(Cri)), "model fittings and",
+    "You did",sum(Cri$size()), "model fittings and",
     sum(info$check), "model checks compared to",
     choose(n=P,k=m),"fittings and",choose(n=P,k=m),
     "checks you would have done with exhaustive search.")
 
   res <- list(originalfit=originalfit, call=call,
               solutions=solutions, table=table,
-              efficiency=efficiency)
+              efficiency=efficiency, info=info,
+              nfits=Cri$size())
   class(res) <- "FSA"
   return(res)
 }
