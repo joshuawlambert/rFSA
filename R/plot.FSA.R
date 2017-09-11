@@ -21,10 +21,10 @@
 plot.FSA <- function(x,ask = F,easy = T,...) {
   stopifnot(inherits(x, "FSA"))
   fm <- fitmodels(x)
-  if (length(fm) < 4) {
+  if (length(fm) < 2) {
     dm <- length(fm)
   } else
-    dm <- 4
+    dm <- 2
   if (easy == F) {
     par(mfrow = c(1,4))
   }
