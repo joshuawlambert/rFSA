@@ -74,10 +74,11 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   ## during optimization.
   cur.key <- starts
 
+  
   form.str <- function(val)
   {
     str = paste0(yname,"~")
-    if(!is.null(fixvar)) str = paste0(str,fixvar, collapse = "+")
+    if(!is.null(fixvar)) str = paste0(paste0(str,fixvar, collapse = "+"),"+")
     str=paste0(str,paste0(allname[val], collapse=ifelse(isTRUE(interactions),"*","+")))
   }
   
