@@ -151,9 +151,13 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     stopifnot(length(unsolved.cur)==length(unsolved.next))
 
     ##Check if any solutions are found
-    ## mask <- (unsolved.cur == unsolved.next |
-    ##            unsolved.next %in% unique(info$solution))
-    mask <- unsolved.cur == unsolved.next
+    print(unique(info$solution))
+    print(unsolved.next)
+    print(unsolved.next %in% unique(info$solution))
+    mask <- (unsolved.cur == unsolved.next |
+               unsolved.next %in% unique(info$solution))
+    #mask <- unsolved.cur == unsolved.next
+    
     cur.sln <- rep(NA, length(unsolved.cur))
     cur.sln[mask] <- unsolved.cur[mask]
 
