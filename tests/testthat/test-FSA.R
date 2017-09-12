@@ -18,3 +18,11 @@ test_that("multiplication works", {
   expect_equal(res$table$criterion,266.028,
                tolerance=1e-2,check.attributes=F)
 })
+
+set.seed(1000)
+res <- FSA(fitfunc=lm,formula="mpg~hp+wt", data=mtcars, fixvar="hp",
+           quad=F, m=2, numrs=10, cores=1, criterion = r.squared, minmax="max")
+test_that("fixvar",{
+  expect_equivalent(as.formula(res$table$formula), as.formula("mpg~hp+hp*wt"))
+  expect_equal(res$table$criterion, 0.8847637, tolerance=1e-3,check.attributes=F)
+})
