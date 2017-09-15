@@ -12,10 +12,7 @@ data <- data.frame(matrix(rnorm(N*(P+1)), nrow = N, ncol = P+1))
 
 for (cores in c(1,10)) {
   test_that(paste0("random data, fixvar=NULL, cores=", cores), {
-    if (cores > 1) {
-      skip_on_cran()
-      skip_on_os("windows")
-    }
+    skip_on_cran()
 
     set.seed(1000)
     res <- FSA(
@@ -31,10 +28,7 @@ for (cores in c(1,10)) {
 
 for (cores in c(1,10)) {
   test_that(paste0("mtcars data, fixvar=hp, cores=", cores),{
-    if (cores > 1) {
-      skip_on_cran()
-      skip_on_os("windows")
-    }
+    skip_on_cran()
     
     set.seed(1000)
     res <- FSA(fitfunc=lm,formula="mpg~hp+wt", data=mtcars, fixvar="hp",

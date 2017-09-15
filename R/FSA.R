@@ -19,7 +19,7 @@
 #' @param ... other arguments passed to fitfunc.
 #'
 #' @import hashmap
-#' @import parallel
+#' @importFrom parallel mclapply
 #' @return matrix of results
 #' @export
 #'
@@ -43,13 +43,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   formula <- as.formula(formula)
   data <- data.frame(data)
 
-  ##if(.Platform$OS.type != "unix") cores = 1
-  if (cores > 1) {
-    mclapply <- switch( Sys.info()[['sysname']],
-                       Windows = {mclapply.hack}, 
-                       Linux   = {mclapply},
-                       Darwin  = {mclapply})
-  }
+  if(.Platform$OS.type != "unix") cores = 1
 
   if(!(is.atomic(min.nonmissing) & length(min.nonmissing)==1)) {
     stop("min.nonmissing should be a scalar.")
@@ -220,10 +214,6 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
               nfits=Cri$size())
   class(res) <- "FSA"
 
-  if(.Platform$OS.type == "windows" && cores > 1){
-    stopCluster(cl)
-  }
-  
   return(res)
 }
 
