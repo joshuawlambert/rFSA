@@ -1,6 +1,6 @@
 #' FSA: Feasible Solution Algorithm
 #'
-#' @description A function using a Feasible Solution Algorithm to find a set of feasible solutions for a statistical model of a specific form that could include mth-order interactions (Note that these solutions are optimal in the sense that no one swap to any of the variables will increase the criterion function.)
+#' @description 
 #' 
 #' @param formula an object of class "formula" (or one that can be coerced to that class): a symbolic description of the model to be fitted. 
 #' @param data a data frame, list or environment (or object coercible by as.data.frame to a data frame) containing the variables in the model.
