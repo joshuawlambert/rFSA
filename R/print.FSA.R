@@ -4,7 +4,6 @@
 #' @param ... arguments to be passed to other functions. 
 #' @return list of Feasible Solution Formula's, Original Fitted model formula and criterion function and times converged to details. 
 #' @importFrom graphics par plot
-#' @importFrom methods show
 #' @importFrom stats AIC anova as.formula cov fitted formula glm influence lm predict resid var
 #' @importFrom utils capture.output tail
 #' @export

@@ -6,7 +6,6 @@
 #' @param ... arguments to be passed to other functions. 
 #' @return diagnostic plots to plot window. 
 #' @importFrom graphics par plot
-#' @importFrom methods show
 #' @importFrom stats AIC anova as.formula cov fitted formula glm influence lm predict resid var
 #' @importFrom utils capture.output tail
 #' @export

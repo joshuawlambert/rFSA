@@ -6,7 +6,6 @@ globalVariables(c("newdata","moves","solutions","myWarnings"))
 #' @param model lm or glm fit to be passed. 
 #' @param name passed to print.FSA
 #' @importFrom graphics par plot
-#' @importFrom methods show
 #' @importFrom stats AIC anova as.formula cov fitted formula glm influence lm predict resid var
 #' @importFrom utils capture.output tail
 #' @export
@@ -21,7 +20,6 @@ r.squared <- function(model,name = "R Squared") {
 #' @param model lm or glm fit to be passed. 
 #' @param name passed to print.FSA
 #' @importFrom graphics par plot
-#' @importFrom methods show
 #' @importFrom stats AIC anova as.formula cov fitted formula glm influence lm predict resid var
 #' @importFrom utils capture.output tail
 #' @export
@@ -35,7 +33,6 @@ rmse <- function(model,name = "RMSE") {
 #' @param model lm or glm fit to be passed. 
 #' @param name passed to print.FSA
 #' @importFrom graphics par plot
-#' @importFrom methods show
 #' @importFrom stats AIC anova as.formula cov fitted formula glm influence lm predict resid var
 #' @importFrom utils capture.output tail
 #' @export
@@ -50,7 +47,6 @@ adj.r.squared <- function(model,name = "Adj R Squared") {
 #' @param model lm or glm fit to be passed. 
 #' @param name passed to print.FSA
 #' @importFrom graphics par plot
-#' @importFrom methods show
 #' @importFrom stats AIC anova as.formula cov fitted formula glm influence lm predict resid var
 #' @importFrom utils capture.output tail
 #' @export
@@ -65,7 +61,6 @@ apress <- function(model, name = "PRESS") {
 #' @param model lm or glm fit to be passed. 
 #' @param name passed to print.FSA
 #' @importFrom graphics par plot
-#' @importFrom methods show
 #' @importFrom stats AIC anova as.formula cov fitted formula glm influence lm predict resid var
 #' @importFrom utils capture.output tail
 #' @export
@@ -85,7 +80,6 @@ int.p.val <- function(model,name = "Interaction P-Value") {
 #' @param model lm or glm fit to be passed. 
 #' @param name passed to print.FSA
 #' @importFrom graphics par plot
-#' @importFrom methods show
 #' @importFrom stats AIC anova as.formula cov fitted formula glm influence lm predict resid var
 #' @importFrom utils capture.output tail
 #' @export
@@ -138,7 +132,6 @@ bdist <- function(model,name = "B Distance") {
 #' @description  rFSA function to compute the maximum value from a vector with NA's. 
 #' @param vec Vector to be passed.
 #' @importFrom graphics par plot
-#' @importFrom methods show
 #' @importFrom stats AIC anova as.formula cov fitted formula glm influence lm predict resid var
 #' @importFrom utils capture.output tail 
 #' @export
@@ -151,7 +144,6 @@ which.max.na <- function(vec) {
 #' @description  rFSA function to compute the minimum value from a vector with NA's. 
 #' @param vec Vector to be passed. 
 #' @importFrom graphics par plot
-#' @importFrom methods show
 #' @importFrom stats AIC anova as.formula cov fitted formula glm influence lm predict resid var
 #' @importFrom utils capture.output tail
 #' @export
@@ -164,9 +156,9 @@ which.min.na <- function(vec) {
 #'
 #' @return list of functions and whether lmFSA or glmFSA work with those functions.
 #' @importFrom graphics par plot
-#' @importFrom methods show
 #' @importFrom stats AIC anova as.formula cov fitted formula glm influence lm predict resid var
-#' @importFrom utils capture.output tail 
+#' @importFrom utils capture.output tail
+#' @importFrom methods show
 #' @export
 #'
 #' @examples

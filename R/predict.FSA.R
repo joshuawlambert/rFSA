@@ -4,7 +4,6 @@
 #' @param ... other parameters passed to fitmodels or predict functions. See help(fitmodels) or help(predict) for assistance.
 #' @return list of predicted values from each FSA model. 
 #' @importFrom graphics par plot
-#' @importFrom methods show
 #' @importFrom stats AIC anova as.formula cov fitted formula glm influence lm predict resid var
 #' @importFrom utils capture.output tail
 #' @export

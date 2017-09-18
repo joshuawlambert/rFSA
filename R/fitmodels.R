@@ -4,7 +4,6 @@
 #' @param ... other parameters passed to lm or glm. See help(lm) or help(glm) for other potential arguements.
 #' @return list of FSA models that have been fitted.
 #' @importFrom graphics par plot
-#' @importFrom methods show
 #' @importFrom stats AIC anova as.formula cov fitted formula glm influence lm predict resid var
 #' @importFrom utils capture.output tail
 #' @export

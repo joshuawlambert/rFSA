@@ -30,7 +30,7 @@
 #' data <- data.frame(matrix(rnorm(N*(P+1)), nrow = N, ncol = P+1))
 #' 
 #' sln <- FSA(formula = "X101~1", data = data, cores = 1, m = 2,
-#' interactions = F, criterion = AIC, minmax = "min",
+#' interactions = FALSE, criterion = AIC, minmax = "min",
 #' numrs = 10)
 #' sln
 #'

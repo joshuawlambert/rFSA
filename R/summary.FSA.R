@@ -4,7 +4,6 @@
 #' @param ... arguments to be passed to other functions. 
 #' @return list of summarized lm or glm output. 
 #' @importFrom graphics par plot
-#' @importFrom methods show
 #' @importFrom stats AIC anova as.formula cov fitted formula glm influence lm predict resid var
 #' @importFrom utils capture.output tail 
 #' @export
