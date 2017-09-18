@@ -15,6 +15,10 @@ Description: Uses the lm() and glm() functions to fit models
     lower order terms.
 License: GPL-2
 LazyData: TRUE
+<<<<<<< HEAD
 Imports: parallel, hashmap, methods
+=======
+Imports: parallel, hashmap
+>>>>>>> 6e2c25ebe54e059b1e387c860c1d0fa8f6e75136
 RoxygenNote: 6.0.1
 Suggests: testthat

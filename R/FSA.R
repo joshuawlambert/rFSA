@@ -45,8 +45,9 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
 
   if(.Platform$OS.type != "unix") cores = 1
 
-  if(!(is.atomic(min.nonmissing) & length(min.nonmissing)==1))
+  if(!(is.atomic(min.nonmissing) & length(min.nonmissing)==1)) {
     stop("min.nonmissing should be a scalar.")
+  }
   
   yname <- all.vars(formula)[1]
   allname <- colnames(data)
@@ -60,12 +61,11 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
 
   ##Generate random starting positions
   #if checkfeas != NULL and length(checkfeas)==m then put the the check feas in the last position of starts
-  if (is.null(checkfeas))
+  if (is.null(checkfeas)) {
     starts <- replicate(n=numrs, expr=pos2key(sort(sample(xpos, m, replace = F))))
-  else if (length(checkfeas)!=m)
+  } else if (length(checkfeas)!=m) {
     stop("sorry, the number of variables in checkfeas is not equal to m. Please try again.")
-  else
-  {
+  } else {
     starts <- replicate(n=numrs, expr=pos2key(sort(sample(xpos, m, replace = F))))
     starts[length(starts)]<-pos2key(which(colnames(data) %in% checkfeas))
   }
@@ -104,8 +104,9 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
       FUN = function(x)
       {
         tmp <- swaps(cur = key2pos(x), n=P+1, quad = quad,yindex = ypos)
-        if (!is.null(var4int))
+        if (!is.null(var4int)) {
           tmp <- tmp[,which(apply(tmp==which(allname==var4int), MARGIN=2, FUN=any))]
+        }
         apply(tmp, MARGIN=2, FUN=pos2key)
       }
     )
@@ -128,10 +129,9 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
         {
           pos <- key2pos(key)
           ## check if there are too many NAs
-          if (sum(!apply(is.na(data[,c(pos, ypos)]), 1, any)) < min.nonmissing)
+          if (sum(!apply(is.na(data[,c(pos, ypos)]), 1, any)) < min.nonmissing) {
             bad.cri
-          else
-          {
+          } else {
             tryCatch(criterion(fitfunc(formula=form(pos), data = data,...)),
                      error=function(cond) {bad.cri})
           }
@@ -151,11 +151,12 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     stopifnot(length(unsolved.cur)==length(unsolved.next))
 
     ##Check if any solutions are found
-    ## mask <- (unsolved.cur == unsolved.next |
-    ##            unsolved.next %in% unique(info$solution))
-    mask <- unsolved.cur == unsolved.next
+    mask <- (unsolved.cur == unsolved.next |
+               unsolved.next %in% info$solution)
+    #mask <- unsolved.cur == unsolved.next
+    
     cur.sln <- rep(NA, length(unsolved.cur))
-    cur.sln[mask] <- unsolved.cur[mask]
+    cur.sln[mask] <- unsolved.next[mask]
 
     ##Update settings and iterate
     info$solution[unsolved.mask] <- cur.sln
@@ -172,14 +173,16 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   call <- mget(names(formals()),sys.frame(sys.nframe()))
 
   solutions <- list()
-  for (k in 1:m)
+  for (k in 1:m) {
     solutions[[paste0("start.",k)]] <- sapply(
       info$start,
       FUN=function(key){allname[key2pos(key)[k]]})
-  for (k in 1:m)
+  }
+  for (k in 1:m) {
     solutions[[paste0("best.",k)]] <- sapply(
       info$solution,
       FUN=function(key){allname[key2pos(key)[k]]})
+  }
   solutions$criterion <- info$criterion
   solutions$swaps <- info$iteration
   solutions <- data.frame(solutions, stringsAsFactors=F)
@@ -189,10 +192,11 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   sln.keys <- names(sln.summary)
   table <- list()
   table$formula <- sapply(sln.keys, FUN=function(key){form.str(key2pos(key))})
-  for (k in 1:m)
+  for (k in 1:m) {
     table[[paste0("Var",k)]] <- sapply(
       sln.keys,
       FUN=function(key){allname[key2pos(key)[k]]})
+  }
   table$criterion <- Cri[[sln.keys]]
   table$times <- as.numeric(sln.summary)
   table <- data.frame(table, stringsAsFactors = F)
@@ -209,6 +213,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
               efficiency=efficiency, info=info,
               nfits=Cri$size())
   class(res) <- "FSA"
+
   return(res)
 }
 

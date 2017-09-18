@@ -61,4 +61,3 @@ nextswap <- function(curpos,n,prevpos,quad) {
 
 pos2key <- function(pos) { paste(pos,collapse = ",")}
 key2pos <- function(key) { eval(parse(text=paste0("c(", key, ")")))}
-
