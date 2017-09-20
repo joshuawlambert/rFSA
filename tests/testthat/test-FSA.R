@@ -10,7 +10,7 @@ P <- 100 #number of variables
 data <- data.frame(matrix(rnorm(N*(P+1)), nrow = N, ncol = P+1))
 
 
-for (cores in c(1,10)) {
+for (cores in c(1, parallel::detectCores())) {
   test_that(paste0("random data, fixvar=NULL, cores=", cores), {
     skip_on_cran()
 
@@ -26,7 +26,7 @@ for (cores in c(1,10)) {
   })
 }
 
-for (cores in c(1,10)) {
+for (cores in c(1, parallel::detectCores())) {
   test_that(paste0("mtcars data, fixvar=hp, cores=", cores),{
     skip_on_cran()
     
