@@ -20,6 +20,7 @@
 #'
 #' @import hashmap
 #' @importFrom parallel mclapply
+#' @import tibble
 #' @return matrix of results
 #' @export
 #'
@@ -74,14 +75,12 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   ## during optimization.
   cur.key <- starts
 
-  
   form.str <- function(val)
   {
     str = paste0(yname,"~")
     if(!is.null(fixvar)) str = paste0(paste0(str,fixvar, collapse = "+"),"+")
     str=paste0(str,paste0(allname[val], collapse=ifelse(isTRUE(interactions),"*","+")))
   }
-  
   form <- function(val){as.formula(form.str(val))}
 
   ## Initilize a hash table to store criterion for the computed
@@ -89,10 +88,16 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   ## produced by pos2key, and could be decoded by key2pos
   Cri <- hashmap("",1)
   Cri$erase("")
+  MDL <- list()
 
-  info <- data.frame(
+  info <- tibble(
     start=starts, current=starts, solution=NA, iteration=0,
-   check=0,stringsAsFactors = F)
+   check=0, steps=as.list(starts), history=as.list(starts))
+
+  ## info <- tibble(
+  ##   start=starts, current=starts, solution=NA, iteration=0,
+  ##  check=0)
+
   unsolved.mask <- is.na(info$solution)
   while(any(unsolved.mask))
   {
@@ -112,6 +117,11 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     )
     names(steps) <- unsolved.cur
     info$check[unsolved.mask] <- info$check[unsolved.mask] + sapply(steps,length)
+    
+    for (k in 1:length(unsolved.cur)) {
+      idx.global <- (1:numrs)[unsolved.mask][k]
+      info$steps[[idx.global]] <- c(info$steps[[idx.global]], steps[[k]])
+    }
 
     ## Calculate criterion for each next step position
     ## Basically, we will check the criterion hash table
@@ -123,20 +133,27 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     steps.noCri <- steps.noCri[!Cri$has_key(steps.noCri)];
     if (length(steps.noCri) > 0 )
     {
-      new.Cri <- unlist(mclapply(
+      new.Cri <- mclapply(
         steps.noCri, mc.cores=cores,
         FUN = function(key)
         {
           pos <- key2pos(key)
           ## check if there are too many NAs
           if (sum(!apply(is.na(data[,c(pos, ypos)]), 1, any)) < min.nonmissing) {
-            bad.cri
+            list(criterion=bad.cri, model=NA)
           } else {
-            tryCatch(criterion(fitfunc(formula=form(pos), data = data,...)),
-                     error=function(cond) {bad.cri})
+            ## tryCatch(criterion(fitfunc(formula=form(pos), data = data,...)),
+            ##          error=function(cond) {bad.cri})
+            tryCatch({mdl <- fitfunc(formula=form(pos), data=data,...);cri <- criterion(mdl); list(criterion=cri, model=mdl)},
+                     error=function(cond) {list(criterion=bad.cri, model=NA)})
           }
-        }))
-      Cri[[steps.noCri]] <- new.Cri
+        }
+        )
+      ##Cri[[steps.noCri]] <- new.Cri
+      for (k in 1:length(steps.noCri)) {
+        Cri[[steps.noCri[k]]] <- new.Cri[[k]]$criterion
+        MDL[[steps.noCri[k]]] <- new.Cri[[k]]$model
+      }
     }
     
     ##Find the best next position for each current position
@@ -150,6 +167,11 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     ))
     stopifnot(length(unsolved.cur)==length(unsolved.next))
 
+    for (k in 1:length(unsolved.cur)) {
+      idx.global <- (1:numrs)[unsolved.mask][k]
+      info$history[[idx.global]] <- c(info$history[[idx.global]], unsolved.next[k])
+    }
+    
     ##Check if any solutions are found
     mask <- (unsolved.cur == unsolved.next |
                unsolved.next %in% info$solution)
@@ -185,8 +207,15 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   }
   solutions$criterion <- info$criterion
   solutions$swaps <- info$iteration
-  solutions <- data.frame(solutions, stringsAsFactors=F)
-  rownames(solutions) <- NULL
+  ## solutions <- data.frame(solutions, stringsAsFactors=F)
+  ## rownames(solutions) <- NULL
+  solutions <- as.tibble(solutions)
+  solutions$swapped.to.model <- list(NA)
+  solutions$checked.model <- list(NA)
+  for (k in 1:numrs) {
+    solutions$swapped.to.model[[k]] <- MDL[unique(info$history[[k]])]
+    solutions$checked.model[[k]] <- MDL[unique(info$steps[[k]])]
+  }
   
   sln.summary <- table(info$solution)
   sln.keys <- names(sln.summary)
