@@ -187,6 +187,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   }
 
 
+
   ##************************************************************
   ## format outputs
   ##************************************************************
@@ -205,7 +206,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
       info$solution,
       FUN=function(key){allname[key2pos(key)[k]]})
   }
-  solutions$criterion <- info$criterion
+  solutions$criterion <- Cri[[info$solution]]
   solutions$swaps <- info$iteration
   ## solutions <- data.frame(solutions, stringsAsFactors=F)
   ## rownames(solutions) <- NULL
