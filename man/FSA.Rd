@@ -9,7 +9,7 @@
 FSA(formula, data, fitfunc = lm, fixvar = NULL, quad = FALSE, m = 2,
   numrs = 1, cores = 1, interactions = T, criterion = AIC,
   minmax = "min", checkfeas = NULL, var4int = NULL, min.nonmissing = 1,
-  ...)
+  return.models = FALSE, ...)
 
 lmFSA(...)
 
@@ -43,6 +43,8 @@ glmFSA(...)
 \item{var4int}{specification of which variables to check for marginal feasiblilty. Default is NULL}
 
 \item{min.nonmissing}{the combination of predictors will be ignored unless this many of observations are not missing}
+
+\item{return.models}{bool value to specify whether return all the fitted models which have been checked}
 
 \item{...}{other arguments passed to fitfunc.}
 }
