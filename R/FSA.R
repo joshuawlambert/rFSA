@@ -16,6 +16,7 @@
 #' @param checkfeas vector of variables that could be a feasible solution. These variables will be used as the last random start.
 #' @param var4int specification of which variables to check for marginal feasiblilty. Default is NULL
 #' @param min.nonmissing the combination of predictors will be ignored unless this many of observations are not missing
+#' @param return.models bool value to specify whether return all the fitted models which have been checked
 #' @param ... other arguments passed to fitfunc.
 #'
 #' @import hashmap
@@ -39,7 +40,7 @@
 FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
                 m = 2, numrs = 1, cores=1, interactions = T,
                 criterion = AIC, minmax="min", checkfeas=NULL, var4int=NULL,
-                min.nonmissing=1,...)
+                min.nonmissing=1, return.models=FALSE,...)
 {
   formula <- as.formula(formula)
   data <- data.frame(data)
@@ -88,7 +89,9 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   ## produced by pos2key, and could be decoded by key2pos
   Cri <- hashmap("",1)
   Cri$erase("")
-  MDL <- list()
+  if (isTRUE(return.models)) {
+    MDL <- list()
+  }
 
   info <- tibble(
     start=starts, current=starts, solution=NA, iteration=0,
@@ -139,20 +142,31 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
         {
           pos <- key2pos(key)
           ## check if there are too many NAs
-          if (sum(!apply(is.na(data[,c(pos, ypos)]), 1, any)) < min.nonmissing) {
-            list(criterion=bad.cri, model=NA)
+          if (isTRUE(return.models)) {
+            if (sum(!apply(is.na(data[,c(pos, ypos)]), 1, any)) < min.nonmissing) {
+              list(criterion=bad.cri, model=NA)
+            } else {
+              tryCatch({mdl <- fitfunc(formula=form(pos), data=data,...);cri <- criterion(mdl);list(criterion=cri, model=mdl)},
+                       error=function(cond) {list(criterion=bad.cri, model=NA)})
+            }
           } else {
-            ## tryCatch(criterion(fitfunc(formula=form(pos), data = data,...)),
-            ##          error=function(cond) {bad.cri})
-            tryCatch({mdl <- fitfunc(formula=form(pos), data=data,...);cri <- criterion(mdl); list(criterion=cri, model=mdl)},
-                     error=function(cond) {list(criterion=bad.cri, model=NA)})
+            if (sum(!apply(is.na(data[,c(pos, ypos)]), 1, any)) < min.nonmissing) {
+              bad.cri
+            } else {
+              tryCatch(criterion(fitfunc(formula=form(pos), data = data,...)),
+                       error=function(cond) {bad.cri})
+            }
           }
         }
         )
-      ##Cri[[steps.noCri]] <- new.Cri
-      for (k in 1:length(steps.noCri)) {
-        Cri[[steps.noCri[k]]] <- new.Cri[[k]]$criterion
-        MDL[[steps.noCri[k]]] <- new.Cri[[k]]$model
+
+      if (isTRUE(return.models)) {
+        for (k in 1:length(steps.noCri)) {
+          Cri[[steps.noCri[k]]] <- new.Cri[[k]]$criterion
+          MDL[[steps.noCri[k]]] <- new.Cri[[k]]$model
+        }
+      } else {
+        Cri[[steps.noCri]] <- unlist(new.Cri)
       }
     }
     
@@ -210,12 +224,14 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   solutions$swaps <- info$iteration
   ## solutions <- data.frame(solutions, stringsAsFactors=F)
   ## rownames(solutions) <- NULL
-  solutions <- as.tibble(solutions)
-  solutions$swapped.to.model <- list(NA)
-  solutions$checked.model <- list(NA)
-  for (k in 1:numrs) {
-    solutions$swapped.to.model[[k]] <- MDL[unique(info$history[[k]])]
-    solutions$checked.model[[k]] <- MDL[unique(info$steps[[k]])]
+  if (isTRUE(return.models)) {
+    solutions <- as.tibble(solutions)
+    solutions$swapped.to.model <- list(NA)
+    solutions$checked.model <- list(NA)
+    for (k in 1:numrs) {
+      solutions$swapped.to.model[[k]] <- MDL[unique(info$history[[k]])]
+      solutions$checked.model[[k]] <- MDL[unique(info$steps[[k]])]
+    }
   }
   
   sln.summary <- table(info$solution)
