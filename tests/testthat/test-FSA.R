@@ -23,6 +23,9 @@ for (cores in c(1, parallel::detectCores())) {
     expect_equivalent(as.formula(res$table$formula), as.formula("X101~X7+X83"))
     expect_equal(res$table$criterion,266.028,
                  tolerance=1e-2,check.attributes=F)
+    expect_false("swapped.to.model" %in% names(res$solutions))
+    expect_false("checked.model" %in% names(res$solutions))
+
 
     set.seed(1000)
     res <- FSA(
@@ -49,6 +52,9 @@ for (cores in c(1, parallel::detectCores())) {
                return.models=FALSE)
     expect_equivalent(as.formula(res$table$formula), as.formula("mpg~hp+hp*wt"))
     expect_equal(res$table$criterion, 0.8847637, tolerance=1e-3,check.attributes=F)
+    expect_false("swapped.to.model" %in% names(res$solutions))
+    expect_false("checked.model" %in% names(res$solutions))
+
 
     set.seed(1000)
     res <- FSA(fitfunc=lm,formula="mpg~hp+wt", data=mtcars, fixvar="hp",
