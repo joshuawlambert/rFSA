@@ -79,7 +79,9 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   form.str <- function(val)
   {
     str = paste0(yname,"~")
-    if(!is.null(fixvar)) str = paste0(paste0(str,fixvar, collapse = "+"),"+")
+    if(!is.null(fixvar)) {
+      str=paste0(str,paste0(fixvar,collapse="+"),"+")
+    }
     str=paste0(str,paste0(allname[val], collapse=ifelse(isTRUE(interactions),"*","+")))
   }
   form <- function(val){as.formula(form.str(val))}
@@ -154,7 +156,8 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
               bad.cri
             } else {
               tryCatch(criterion(fitfunc(formula=form(pos), data = data,...)),
-                       error=function(cond) {bad.cri})
+                       error=function(cond) {
+                         bad.cri})
             }
           }
         }

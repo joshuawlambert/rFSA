@@ -38,7 +38,6 @@ for (cores in c(1, parallel::detectCores())) {
                  tolerance=1e-2,check.attributes=F)
     expect_true("swapped.to.model" %in% names(res$solutions))
     expect_true("checked.model" %in% names(res$solutions))
-    
   })
 }
 
@@ -48,7 +47,7 @@ for (cores in c(1, parallel::detectCores())) {
     
     set.seed(1000)
     res <- FSA(fitfunc=lm,formula="mpg~hp+wt", data=mtcars, fixvar="hp",
-               quad=F, m=2, numrs=10, cores=1, criterion = r.squared, minmax="max",
+               quad=F, m=2, numrs=10, cores=cores, criterion = r.squared, minmax="max",
                return.models=FALSE)
     expect_equivalent(as.formula(res$table$formula), as.formula("mpg~hp+hp*wt"))
     expect_equal(res$table$criterion, 0.8847637, tolerance=1e-3,check.attributes=F)
@@ -58,11 +57,31 @@ for (cores in c(1, parallel::detectCores())) {
 
     set.seed(1000)
     res <- FSA(fitfunc=lm,formula="mpg~hp+wt", data=mtcars, fixvar="hp",
-               quad=F, m=2, numrs=10, cores=1, criterion = r.squared, minmax="max",
+               quad=F, m=2, numrs=10, cores=cores, criterion = r.squared, minmax="max",
                return.models=TRUE)
     expect_equivalent(as.formula(res$table$formula), as.formula("mpg~hp+hp*wt"))
-    expect_equal(res$table$criterion, 0.8847637, tolerance=1e-3,check.attributes=F)
+    expect_equal(res$table$criterion, 0.8847637, tolerance=1e-3,check.attributes=FALSE)
     expect_true("swapped.to.model" %in% names(res$solutions))
     expect_true("checked.model" %in% names(res$solutions))
   })
+}
+
+for (cores in c(1, parallel::detectCores())) {
+  skip_on_cran()
+  set.seed(123)
+  n=100
+  p=100
+  x <- matrix(runif(n=n*p,min=0,max=1),nrow=n,ncol=p)
+  y <- 0.5*x[,1]+0.25*x[,2]+0.5*x[,1]*x[,2]+rnorm(n=n)
+  FSA.data <- data.frame(x,y)
+
+  set.seed(1000)
+  res <- FSA(
+    y~1,data=FSA.data,fixvar=c('X1','X3'), numrs=10,
+    m=2, criterion=r.squared, minmax='max')
+          
+  expect_equivalent(as.formula(res$table$formula[1]), as.formula("y~X1+X3+X35*X82"))
+  expect_equivalent(as.formula(res$table$formula[2]), as.formula("y~X1+X3+X8*X47"))
+  expect_equivalent(as.formula(res$table$formula[3]), as.formula("y~X1+X3+X9*X86"))
+  expect_equal(res$table$criterion, c(0.1768123,0.2089683,0.1420302), tolerance=1e-5, check.attributes=FALSE)
 }
