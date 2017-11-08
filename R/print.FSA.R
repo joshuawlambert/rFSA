@@ -15,7 +15,28 @@
 #' fit<-lmFSA(formula="mpg~hp*wt",data=mtcars,fixvar="hp",
 #'                    quad=FALSE,m=2,numrs=10,save_solutions=FALSE,cores=1)
 #' print(fit)
-print.FSA <- function(x,...) {
+print.FSA <- function(x,...)
+{
+  stopifnot(inherits(x,"FSA"))
+  tab <- x$table
+
+  ## drop columns named with Var*
+  tab[,startsWith(names(tab),"Var")] <- NULL
+
+  ## add a row for original fit
+  original <- x$original.model
+  original$times <- NA
+  original$optimized.by <- NA
+  if ("criterion.1" %in% names(tab)) {
+    original$criterion <- NA
+  }
+  original <- as.data.frame(original, stringsAsFactors = FALSE)
+  tab <- rbind(original, tab)
+  rownames(tab) <- c("Original Fit", paste0("FS", 1:(nrow(tab)-1)))
+  print(tab)
+}
+
+print3.FSA <- function(x,...) {
   stopifnot(inherits(x, "FSA"))
   ## vars <-
   ##   x$table[,-which(colnames(x$table) %in% c("criterion","times","fixvar"))]
