@@ -299,7 +299,7 @@ FSA1 <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   ##************************************************************
   ## format outputs
   ##************************************************************
-  originalfit <- tryCatch(fitfunc(formula=formula, data=data),
+  originalfit <- tryCatch(fitfunc(formula=formula, data=data,...),
                           error=function(e){NULL})
   original.model <- list(formula=Reduce(paste, deparse(formula)),
                          criterion=criterion(originalfit))
