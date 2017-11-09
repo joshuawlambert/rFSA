@@ -40,7 +40,7 @@
 FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
                 m = 2, numrs = 1, cores=1, interactions = T,
                 criterion = AIC, minmax="min", checkfeas=NULL, var4int=NULL,
-                min.nonmissing=1, return.models=FALSE,...)
+                min.nonmissing=1, return.models=FALSE, ...)
 {
   if (length(criterion) > 1) {
     if (length(criterion) != length(minmax)) {
@@ -60,7 +60,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
                  m=m, numrs=numrs, cores=cores, interactions=interactions,
                  criterion=criterion[[k]], minmax=minmax[k], checkfeas=checkfeas,
                  var4int=var4int, min.nonmissing=min.nonmissing,
-                 return.models=return.models,...)
+                 return.models=return.models, ...)
       originalfit <- res$originalfit
       if (is.null(original.model)) {
         original.model = res$original.model
@@ -73,7 +73,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
       for (l in 1:length(criterion)) {
         table.0[[paste0("criterion.",l)]] <- rep(NA, N.table)
         for (n in 1:N.table) {
-          table.0[[paste0("criterion.",l)]][n] <- criterion[[l]](fitfunc(as.formula(table.0$formula[n]), data=data,...))
+          table.0[[paste0("criterion.",l)]][n] <- criterion[[l]](fitfunc(as.formula(table.0$formula[n]), data=data, ...))
         }
       }
       table.0[["optimized.by"]] <- rep(paste0("criterion.",k), N.table)
@@ -118,7 +118,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
          numrs=numrs, cores=cores, interactions=interactions,
          criterion=criterion, minmax=minmax, checkfeas=checkfeas,
          var4int=var4int, min.nonmissing=min.nonmissing,
-         return.models=return.models,...)
+         return.models=return.models, ...)
   }
 }
 
@@ -126,7 +126,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
 FSA1 <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
                 m = 2, numrs = 1, cores=1, interactions = T,
                 criterion = AIC, minmax="min", checkfeas=NULL, var4int=NULL,
-                min.nonmissing=1, return.models=FALSE,...)
+                min.nonmissing=1, return.models=FALSE, ...)
 {
   ##************************************************************
   ## check inputs
@@ -366,8 +366,8 @@ FSA1 <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
 
 #' @export
 #' @describeIn FSA alias for \code{FSA(fitfunc=lm,...)}
-lmFSA <- function(...) {FSA(fitfunc = lm, ...)}
+lmFSA <- function( ...) {FSA(fitfunc = lm, ...)}
 
 #' @export
 #' @describeIn FSA alias for \code{FSA(fitfunc=glm,...)}
-glmFSA <- function(...) {FSA(fitfunc = glm, ...)}
+glmFSA <- function( ...) {FSA(fitfunc = glm, ...)}
