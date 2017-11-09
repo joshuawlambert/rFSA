@@ -73,7 +73,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
       for (l in 1:length(criterion)) {
         table.0[[paste0("criterion.",l)]] <- rep(NA, N.table)
         for (n in 1:N.table) {
-          table.0[[paste0("criterion.",l)]][n] <- criterion[[l]](fitfunc(as.formula(table.0$formula[n]), data=data))
+          table.0[[paste0("criterion.",l)]][n] <- criterion[[l]](fitfunc(as.formula(table.0$formula[n]), data=data,...))
         }
       }
       table.0[["optimized.by"]] <- rep(paste0("criterion.",k), N.table)
