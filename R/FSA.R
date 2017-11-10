@@ -42,88 +42,93 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
                 criterion = AIC, minmax="min", checkfeas=NULL, var4int=NULL,
                 min.nonmissing=1, return.models=FALSE, ...)
 {
-  if (length(criterion) > 1) {
-    if (length(criterion) != length(minmax)) {
-      stop("the number of criterion functions and number of minmax options does not match")
-    }
+  call <- match.call()
+  original <- list()
+  original$formula <- Reduce(paste, deparse(as.formula(formula)))
+  original$model <- tryCatch(fitfunc(formula=original$formula, data=data, ...),
+                             error=function(e){NULL})
 
-    originalfit <- NULL
-    original.model <- NULL
-    call <- mget(names(formals()), sys.frame(sys.nframe()))
-
-    solutions <- NULL
-    table <- NULL
-    nfits <- 0
-    nchecks <- 0
-    for (k in 1:length(criterion)) {
-      res <- FSA(formula, data, fitfunc=fitfunc, fixvar=fixvar, quad=quad,
-                 m=m, numrs=numrs, cores=cores, interactions=interactions,
-                 criterion=criterion[[k]], minmax=minmax[k], checkfeas=checkfeas,
-                 var4int=var4int, min.nonmissing=min.nonmissing,
-                 return.models=return.models, ...)
-      originalfit <- res$originalfit
-      if (is.null(original.model)) {
-        original.model = res$original.model
-        original.model$criterion = NA
-      }
-      original.model[[paste0("criterion.",k)]] <- criterion[[k]](originalfit)
-      
-      table.0 <- res$table
-      N.table <- nrow(table.0)
-      for (l in 1:length(criterion)) {
-        table.0[[paste0("criterion.",l)]] <- rep(NA, N.table)
-        for (n in 1:N.table) {
-          table.0[[paste0("criterion.",l)]][n] <- criterion[[l]](fitfunc(as.formula(table.0$formula[n]), data=data, ...))
-        }
-      }
-      table.0[["optimized.by"]] <- rep(paste0("criterion.",k), N.table)
-      table <- rbind(table, table.0)
-      
-      solutions.0 <- res$solution
-      N.solutions <- nrow(solutions.0)
-      for (l in 1:length(criterion)) {
-        solutions.0[[paste0("criterion.",l)]] <- rep(NA, N.solutions)
-        for (n in 1:N.solutions) {
-          mask <- rep(TRUE, N.table)
-          for (mm in 1:m) {
-            mask <- mask &
-              solutions.0[[paste0("best.",mm)]][n] == table.0[[paste0("Var",mm)]]
-          }
-          idx = which(mask)
-          stopifnot(length(idx)==1)
-          solutions.0[[paste0("criterion.",l)]][n]<- table.0[[paste0("criterion.",l)]][idx]
-        }
-      }
-      solutions.0[["optimized.by"]] <- rep(paste0("criterion.",k), N.solutions)
-      solutions <- rbind(solutions, solutions.0)
-      
-      nfits <- nfits + res$nfits
-      nchecks <- nchecks + res$nchecks
-    }
-
-    efficiency <- paste(
-      "You did",nfits, "model fittings and",
-      nchecks, "model checks compared to",
-      length(criterion)*choose(n=P,k=m),"fittings and",length(criterion)*choose(n=P,k=m),
-      "checks you would have done with exhaustive search.")
-
-    combined <- list(originalfit=originalfit, original.model=original.model,
-                     call=call, solutions=solutions, table=table,
-                     efficiency=efficiency, nfits=nfits, nchecks=nchecks)
-    class(combined) <- "FSA"
-    return(combined)
-    
-  } else {
-    FSA1(formula, data, fitfunc=fitfunc, fixvar=fixvar, quad=quad, m=m,
-         numrs=numrs, cores=cores, interactions=interactions,
-         criterion=criterion, minmax=minmax, checkfeas=checkfeas,
-         var4int=var4int, min.nonmissing=min.nonmissing,
-         return.models=return.models, ...)
+  if (length(criterion) != length(minmax)) {
+    stop("the number of criterion functions and number of minmax options does not match")
   }
+  if (length(criterion) == 1) {
+    criterion = list(criterion)
+  }
+
+  for (k in 1:length(criterion)) {
+    original[[paste0("criterion.",k)]] <- criterion[[k]](original$model)
+  }
+  
+  solutions <- NULL
+  table <- NULL
+  nfits <- 0
+  nchecks <- 0
+  for (k in 1:length(criterion)) {
+    fit <- fitFSA(formula, data, fitfunc=fitfunc, fixvar=fixvar, quad=quad,
+                  m=m, numrs=numrs, cores=cores, interactions=interactions,
+                  criterion=criterion[[k]], minmax=minmax[k], checkfeas=checkfeas,
+                  var4int=var4int, min.nonmissing=min.nonmissing,
+                  return.models=return.models, ...)
+    
+    ## merge table
+    table.0 <- fit$table
+    N.table <- nrow(table.0)
+    for (n in 1:N.table) {
+      idx <- which(table.0$formula[n]==table$formula)
+      if (length(idx)==0) {
+        tmp <- table.0[n,]
+        for (l in 1:length(criterion)) {
+          tmp[[paste0("criterion.",l)]] <- criterion[[l]](fitfunc(tmp$formula, data=data, ...))
+        }
+        tmp$opt.criterion <- list(k)
+        table <- rbind(table, tmp)
+      } else if (length(idx)==1) {
+        table$opt.criterion[[idx]] <- c(table$opt.criterion[idx],k)
+        table$times[idx] <- table$times[idx] + tmp$times
+      } else {
+        stop("merge table: formulas are not unique")
+      }
+    }
+
+    ## merge solutions
+    solutions.0 <- fit$solution
+    N.solutions <- nrow(solutions.0)
+    for (l in 1:length(criterion)) {
+      solutions.0[[paste0("criterion.",l)]] <- rep(NA, N.solutions)
+      for (n in 1:N.solutions) {
+        mask <- rep(TRUE, N.table)
+        for (mm in 1:m) {
+          mask <- mask &
+            solutions.0[[paste0("best.",mm)]][n] == table.0[[paste0("Var",mm)]]
+        }
+        idx = which(mask)
+        stopifnot(length(idx)==1)
+        solutions.0[[paste0("criterion.",l)]][n]<- table[[paste0("criterion.",l)]][idx]
+      }
+    }
+    solutions.0[["optimized.by"]] <- rep(paste0("criterion.",k), N.solutions)
+    solutions <- rbind(solutions, solutions.0)
+    
+    nfits <- nfits + fit$nfits
+    nchecks <- nchecks + fit$nchecks
+  }
+
+  efficiency <- paste(
+    "You did",nfits, "model fittings and",
+    nchecks, "model checks compared to",
+    length(criterion)*choose(n=P,k=m),"fittings and",
+    length(criterion)*choose(n=P,k=m),
+    "checks you would have done with exhaustive search.")
+
+  res <- list(original=original, call=call,
+              solutions=solutions, table=table,
+              efficiency=efficiency, nfits=nfits, nchecks=nchecks)
+  class(res) <- "FSA"
+  return(res)
 }
 
 
-FSA1 <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
+fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
                 m = 2, numrs = 1, cores=1, interactions = T,
                 criterion = AIC, minmax="min", checkfeas=NULL, var4int=NULL,
                 min.nonmissing=1, return.models=FALSE, ...)
@@ -132,7 +137,7 @@ FSA1 <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   ## check inputs
   ##************************************************************
   formula <- as.formula(formula)
-  data <- data.frame(data)
+  data <- as.data.frame(data)
 
   if(.Platform$OS.type != "unix") cores = 1
 
@@ -164,7 +169,7 @@ FSA1 <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   ##************************************************************
   ## optimization
   ##************************************************************
-  
+
   ## cur.key stores the keys of current positions
   ## during optimization.
   cur.key <- starts
@@ -190,11 +195,7 @@ FSA1 <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
 
   info <- tibble(
     start=starts, current=starts, solution=NA, iteration=0,
-   check=0, steps=as.list(starts), history=as.list(starts))
-
-  ## info <- tibble(
-  ##   start=starts, current=starts, solution=NA, iteration=0,
-  ##  check=0)
+    check=0, steps=as.list(starts), history=as.list(starts))
 
   unsolved.mask <- is.na(info$solution)
   while(any(unsolved.mask))
@@ -236,21 +237,25 @@ FSA1 <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
         FUN = function(key)
         {
           pos <- key2pos(key)
-          ## check if there are too many NAs
+
           if (isTRUE(return.models)) {
             if (sum(!apply(is.na(data[,c(pos, ypos)]), 1, any)) < min.nonmissing) {
               list(criterion=bad.cri, model=NA)
             } else {
-              tryCatch({mdl <- fitfunc(formula=form(pos), data=data,...);cri <- criterion(mdl);list(criterion=cri, model=mdl)},
-                       error=function(cond) {list(criterion=bad.cri, model=NA)})
+              tryCatch({
+                mdl <- fitfunc(formula=form(pos), data=data,...);
+                cri <- criterion(mdl);
+                list(criterion=cri, model=mdl)
+              },
+              error=function(cond) {list(criterion=bad.cri, model=NA)})
             }
           } else {
             if (sum(!apply(is.na(data[,c(pos, ypos)]), 1, any)) < min.nonmissing) {
               bad.cri
             } else {
-              tryCatch(criterion(fitfunc(formula=form(pos), data = data,...)),
-                       error=function(cond) {
-                         bad.cri})
+              tryCatch(
+                criterion(fitfunc(formula=form(pos), data = data,...)),
+                error=function(cond) {bad.cri})
             }
           }
         }
@@ -301,10 +306,10 @@ FSA1 <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   ##************************************************************
   originalfit <- tryCatch(fitfunc(formula=formula, data=data,...),
                           error=function(e){NULL})
-  original.model <- list(formula=Reduce(paste, deparse(formula)),
-                         criterion=criterion(originalfit))
-  
-  call <- mget(names(formals()),sys.frame(sys.nframe()))
+  original <- list(formula=Reduce(paste, deparse(formula)),
+                   criterion=criterion(originalfit),
+                   model=originalfit)
+ 
 
   solutions <- list()
   for (k in 1:m) {
@@ -319,8 +324,6 @@ FSA1 <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   }
   solutions$criterion <- Cri[[info$solution]]
   solutions$swaps <- info$iteration
-  ## solutions <- data.frame(solutions, stringsAsFactors=F)
-  ## rownames(solutions) <- NULL
   if (isTRUE(return.models)) {
     solutions <- as.tibble(solutions)
     solutions$swapped.to.model <- list(NA)
@@ -333,6 +336,7 @@ FSA1 <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     solutions <- data.frame(solutions, stringsAsFactors = FALSE)
     rownames(solutions) <- NULL
   }
+
   
   sln.summary <- table(info$solution)
   sln.keys <- names(sln.summary)
@@ -345,24 +349,24 @@ FSA1 <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   }
   table$criterion <- Cri[[sln.keys]]
   table$times <- as.numeric(sln.summary)
-  table <- data.frame(table, stringsAsFactors = F)
-  rownames(table) <- NULL
+  table <- as_tibble(table)
+  if (isTRUE(return.models)) {
+    table$model <- MDL[sln.keys]
+  } else {
+    table$model <- lapply(table$formula, FUN = function(form) {
+      fitfunc(form, data=data, ...)
+    })
+  }
 
-  efficiency <- paste(
-    "You did",sum(Cri$size()), "model fittings and",
-    sum(info$check), "model checks compared to",
-    choose(n=P,k=m),"fittings and",choose(n=P,k=m),
-    "checks you would have done with exhaustive search.")
 
-  res <- list(originalfit=originalfit, call=call,
-              solutions=solutions, table=table,
-              efficiency=efficiency, info=info,
+  res <- list(solutions=solutions, table=table,
               nfits=Cri$size(), nchecks=sum(info$check),
-              original.model=original.model)
+              original=original)
   class(res) <- "FSA"
 
   return(res)
 }
+
 
 #' @export
 #' @describeIn FSA alias for \code{FSA(fitfunc=lm,...)}

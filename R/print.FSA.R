@@ -19,21 +19,28 @@ print.FSA <- function(x,...)
 {
   stopifnot(inherits(x,"FSA"))
   tab <- x$table
+  tab$model <- NULL
+  tab$opt.criterion <- lapply(tab$opt.criterion, FUN = function(x){paste0(x,collapse=",")})
+  tab <- as.data.frame(tab)
 
   ## drop columns named with Var*
   tab[,startsWith(names(tab),"Var")] <- NULL
 
   ## add a row for original fit
-  original <- x$original.model
+  original <- x$original
   original$times <- NA
-  if ("criterion.1" %in% names(tab)) {
-    original$criterion <- NA
-    original$optimized.by <- NA
-  }
+  original$model <- NULL
+  original$criterion <- NA
+  original$opt.criterion <- NA
+  
   original <- as.data.frame(original, stringsAsFactors = FALSE)
-  print(original)
-  print(tab)
   tab <- rbind(original, tab)
+  if (length(grep("^criterion.",names(tab))) == 1) {
+##  if (sum(startsWith(names(tab),"criterion."))==1) {
+    tab$criterion <- NULL
+    tab$opt.criterion <- NULL
+    names(tab)[names(tab)=="criterion.1"] <- "criterion"
+  }
   rownames(tab) <- c("Original Fit", paste0("FS", 1:(nrow(tab)-1)))
   print(tab)
 }
