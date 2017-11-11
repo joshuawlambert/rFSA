@@ -24,7 +24,7 @@ print.FSA <- function(x,...)
   tab <- as.data.frame(tab)
 
   ## drop columns named with Var*
-  tab[,grep("^Var",names(tab))] <- NULL
+  tab <- tab[,-grep("^Var",names(tab))]
 
   ## add a row for original fit
   original <- x$original
