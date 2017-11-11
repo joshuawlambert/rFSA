@@ -48,6 +48,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   original$model <- tryCatch(fitfunc(formula=original$formula, data=data, ...),
                              error=function(e){NULL})
 
+  
   if (length(criterion) != length(minmax)) {
     stop("the number of criterion functions and number of minmax options does not match")
   }
@@ -113,6 +114,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     nchecks <- nchecks + fit$nchecks
   }
 
+  P <- ncol(data)
   efficiency <- paste(
     "You did",nfits, "model fittings and",
     nchecks, "model checks compared to",
