@@ -3,12 +3,15 @@ context("FSA")
 ## TODO: Rename context
 ## TODO: Add more tests
 
+###************************************************************
+### test cases created at the first phase of development
+###************************************************************
+
 set.seed(1000)
 numrs <- 10 #number of start point
 N <- 100 #number of obs
 P <- 100 #number of variables
 data <- data.frame(matrix(rnorm(N*(P+1)), nrow = N, ncol = P+1))
-
 
 for (cores in c(1, parallel::detectCores())) {
   test_that(paste0("random data, fixvar=NULL, cores=", cores), {
@@ -67,21 +70,31 @@ for (cores in c(1, parallel::detectCores())) {
 }
 
 for (cores in c(1, parallel::detectCores())) {
-  skip_on_cran()
-  set.seed(123)
-  n=100
-  p=100
-  x <- matrix(runif(n=n*p,min=0,max=1),nrow=n,ncol=p)
-  y <- 0.5*x[,1]+0.25*x[,2]+0.5*x[,1]*x[,2]+rnorm(n=n)
-  FSA.data <- data.frame(x,y)
+  test_that("two fix variables", {
+    skip_on_cran()
+    set.seed(123)
+    n=100
+    p=100
+    x <- matrix(runif(n=n*p,min=0,max=1),nrow=n,ncol=p)
+    y <- 0.5*x[,1]+0.25*x[,2]+0.5*x[,1]*x[,2]+rnorm(n=n)
+    FSA.data <- data.frame(x,y)
 
-  set.seed(1000)
-  res <- FSA(
-    y~1,data=FSA.data,fixvar=c('X1','X3'), numrs=10,
-    m=2, criterion=r.squared, minmax='max')
-          
-  expect_equivalent(as.formula(res$table$formula[1]), as.formula("y~X1+X3+X35*X82"))
-  expect_equivalent(as.formula(res$table$formula[2]), as.formula("y~X1+X3+X8*X47"))
-  expect_equivalent(as.formula(res$table$formula[3]), as.formula("y~X1+X3+X9*X86"))
-  expect_equal(res$table$criterion, c(0.1768123,0.2089683,0.1420302), tolerance=1e-5, check.attributes=FALSE)
+    set.seed(1000)
+    res <- FSA(
+      y~1,data=FSA.data,fixvar=c('X1','X3'), numrs=10,
+      m=2, criterion=r.squared, minmax='max')
+    
+    expect_equivalent(as.formula(res$table$formula[1]), as.formula("y~X1+X3+X35*X82"))
+    expect_equivalent(as.formula(res$table$formula[2]), as.formula("y~X1+X3+X8*X47"))
+    expect_equivalent(as.formula(res$table$formula[3]), as.formula("y~X1+X3+X9*X86"))
+    expect_equal(res$table$criterion, c(0.1768123,0.2089683,0.1420302), tolerance=1e-5, check.attributes=FALSE)
+  })
 }
+
+test_that("glm",{
+  set.seed(1000)
+  res <- FSA(fitfunc=glm, formula="vs~disp+mpg", data=mtcars, numrs=10, criterion=AIC, minmax="min")
+  expect_equivalent(as.formula(res$table$formula[1]), as.formula("vs~cyl*qsec"))
+  expect_equal(res$table$criterion, 9.425098, tolerance=1e-5)
+  })
+
