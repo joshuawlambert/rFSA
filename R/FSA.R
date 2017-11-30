@@ -131,7 +131,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
 
 
 fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
-                m = 2, numrs = 1, cores=1, interactions = T,
+                m = 2, numrs = 1, cores=1, interactions = TRUE,
                 criterion = AIC, minmax="min", checkfeas=NULL, var4int=NULL,
                 min.nonmissing=1, return.models=FALSE, ...)
 {
@@ -139,34 +139,96 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   ## check inputs
   ##************************************************************
   formula <- as.formula(formula)
+
   data <- as.data.frame(data)
-
-  if(.Platform$OS.type != "unix") cores = 1
-
-  if(!(is.atomic(min.nonmissing) & length(min.nonmissing)==1)) {
-    stop("min.nonmissing should be a scalar.")
-  }
-  
-  yname <- all.vars(formula)[1]
   allname <- colnames(data)
-  stopifnot(all(c(yname,fixvar) %in% allname))
+  ##yname <- all.vars(formula)[1]
+  if (!all(all.vars(formula) %in% c(allname, "."))) {
+    stop(paste("variable",
+               all.vars(formula)[!(all.vars(formula)%in%c(allname,"."))],
+               "does not exist in data"))
+  }
+  yname <- all.vars(formula)[1]
   P <- length(allname)-1
   ypos <- which(allname == yname)
   xpos <- setdiff(1:(P+1), ypos)
-  criterion <- criterion
+  
+  if (!is.function(fitfunc)) {
+    stop("fitfunc should be a function")
+  }
+
+  if (!is.null(fixvar) && !is.character(fixvar)) {
+    stop("fixvar should be NULL or a character vector")
+  } else if (!all(fixvar %in% allname)) {
+    stop(paste("fixvar", fixvar[!(fixvar %in% allname)],
+               "does not exist in data"))
+  }
+
+  if (!is.logical(quad) | is.na(quad) | length(quad)!=1 ) {
+    stop("quad should be TRUE or FALSE")
+  }
+
+  if (!(is.numeric(m) | is.integer(m)) | length(m)!=1) {
+    stop("m should be a scalar")
+  } else if (m<1) {
+    stop("m should be greater than or equal 1")
+  }
+
+  if (!(is.numeric(numrs) | is.integer(numrs)) | length(numrs)!=1) {
+    stop("numrs should be a scalar")
+  } else if (numrs<1) {
+    stop("numrs should be greater than or equal 1")
+  }
+    
+  if(.Platform$OS.type != "unix") cores = 1
+  if (!(is.numeric(cores) | is.integer(cores)) | length(cores)!=1) {
+    stop("cores should be a scalar")
+  } else if (cores<1) {
+    stop("cores should be greater than or equal 1")
+  }
+
+  if (!is.logical(interactions) | is.na(interactions) | length(interactions)!=1 ) {
+    stop("interactions should be TRUE or FALSE")
+  }
+
+  if (!is.function(criterion)) {
+    stop("criterion should be a function")
+  }
+
+  ## minmax has been checked in FSA()
+  stopifnot(is.character(minmax) && length(minmax)==1 && minmax %in% c("min","max"))
+
+  if (is.character(checkfeas)) {
+    if (length(checkfeas)!=m) {
+      stop("sorry, the number of variables in checkfeas is not equal to m. Please try again.")
+    } else if (!all(checkfeas %in% allname)) {
+      stop(paste("variable", checkfeas[!(checkfeas %in% allname)], "does not exist in data"))
+    }
+  } else if (!is.null(checkfeas)) {
+    stop("checkfeas should be NULL or a character vector")
+  }
+
+
+  if (!(is.null(var4int) | is.character(var4int) & length(var4int)==1)) {
+    stop("var4int should be NULL or a character scalar")
+  }
+  
+  if(!(is.atomic(min.nonmissing) & length(min.nonmissing)==1)) {
+    stop("min.nonmissing should be a scalar.")
+  }
+
+  if (!is.logical(return.models) | is.na(return.models) | length(return.models)!=1 ) {
+    stop("return.models should be TRUE or FALSE")
+  }
+  
   which.best <- switch(tolower(minmax), min=which.min, max=which.max)
   bad.cri <- switch(tolower(minmax), min=Inf, max=-Inf)
 
   ##Generate random starting positions
   #if checkfeas != NULL and length(checkfeas)==m then put the the check feas in the last position of starts
+  stopifnot(is.null(checkfeas) | all(checkfeas %in% allname))
   if (is.null(checkfeas)) {
     starts <- replicate(n=numrs, expr=pos2key(sort(sample(xpos, m, replace = F))))
-  } else if (!is.character(checkfeas)) {
-    stop("checkfeas should be variable names as character vector")
-  } else if (length(checkfeas)!=m) {
-    stop("sorry, the number of variables in checkfeas is not equal to m. Please try again.")
-  } else if (!all(checkfeas %in% allname)) {
-    stop(paste("variable", checkfeas[!(checkfeas %in% allname)], "does not exist in data"))
   } else {
     starts <- replicate(n=numrs, expr=pos2key(sort(sample(xpos, m, replace = F))))
     starts[length(starts)]<-pos2key(which(colnames(data) %in% checkfeas))
