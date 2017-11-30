@@ -1,4 +1,4 @@
-context("FSA")
+context("FSA-cores")
 
 ## TODO: Rename context
 ## TODO: Add more tests
@@ -81,7 +81,7 @@ for (cores in c(1, parallel::detectCores())) {
 
     set.seed(1000)
     res <- FSA(
-      y~1,data=FSA.data,fixvar=c('X1','X3'), numrs=10,
+      y~1,data=FSA.data,fixvar=c('X1','X3'), numrs=10, cores=cores,
       m=2, criterion=r.squared, minmax='max')
     
     expect_equivalent(as.formula(res$table$formula[1]), as.formula("y~X1+X3+X35*X82"))
@@ -91,10 +91,12 @@ for (cores in c(1, parallel::detectCores())) {
   })
 }
 
-test_that("glm",{
-  set.seed(1000)
-  res <- FSA(fitfunc=glm, formula="vs~disp+mpg", data=mtcars, numrs=10, criterion=AIC, minmax="min")
-  expect_equivalent(as.formula(res$table$formula[1]), as.formula("vs~cyl*qsec"))
-  expect_equal(res$table$criterion, 9.425098, tolerance=1e-5)
+for (cores in c(1, parallel::detectCores())) {
+  test_that("glm",{
+    set.seed(1000)
+    res <- FSA(fitfunc=glm, formula="vs~disp+mpg", data=mtcars,
+               cores=cores,numrs=10, criterion=AIC, minmax="min")
+    expect_equivalent(as.formula(res$table$formula[1]), as.formula("vs~cyl*qsec"))
+    expect_equal(res$table$criterion, 9.425098, tolerance=1e-5)
   })
-
+}

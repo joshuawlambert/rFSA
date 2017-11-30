@@ -161,8 +161,12 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   #if checkfeas != NULL and length(checkfeas)==m then put the the check feas in the last position of starts
   if (is.null(checkfeas)) {
     starts <- replicate(n=numrs, expr=pos2key(sort(sample(xpos, m, replace = F))))
+  } else if (!is.character(checkfeas)) {
+    stop("checkfeas should be variable names as character vector")
   } else if (length(checkfeas)!=m) {
     stop("sorry, the number of variables in checkfeas is not equal to m. Please try again.")
+  } else if (!all(checkfeas %in% allname)) {
+    stop(paste("variable", checkfeas[!(checkfeas %in% allname)], "does not exist in data"))
   } else {
     starts <- replicate(n=numrs, expr=pos2key(sort(sample(xpos, m, replace = F))))
     starts[length(starts)]<-pos2key(which(colnames(data) %in% checkfeas))
