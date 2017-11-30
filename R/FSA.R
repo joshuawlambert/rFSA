@@ -48,6 +48,17 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   original$model <- tryCatch(fitfunc(formula=original$formula, data=data, ...),
                              error=function(e){NULL})
 
+
+  if (!(is.function(criterion) | is.list(criterion) & all(sapply(criterion,is.function)))) {
+    stop("criterion should be a function or a list of functions")
+  }
+  if (!(is.character(minmax) | is.list(minmax) & all(sapply(minmax,is.character)))) {
+    stop("minmax should be character vector or list of character strings")
+  }
+  minmax <- tolower(unlist(minmax))
+  if (!all(minmax %in% c("min","max"))) {
+    stop("minmax should contain \"min\" or \"max\" only")
+  }
   
   if (length(criterion) != length(minmax)) {
     stop("the number of criterion functions and number of minmax options does not match")
@@ -170,8 +181,8 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
 
   if (!(is.numeric(m) | is.integer(m)) | length(m)!=1) {
     stop("m should be a scalar")
-  } else if (m<1) {
-    stop("m should be greater than or equal 1")
+  } else if (m<2) {
+    stop("m should be greater than or equal 2")
   }
 
   if (!(is.numeric(numrs) | is.integer(numrs)) | length(numrs)!=1) {
@@ -180,12 +191,16 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     stop("numrs should be greater than or equal 1")
   }
     
-  if(.Platform$OS.type != "unix") cores = 1
   if (!(is.numeric(cores) | is.integer(cores)) | length(cores)!=1) {
     stop("cores should be a scalar")
   } else if (cores<1) {
     stop("cores should be greater than or equal 1")
   }
+  if (.Platform$OS.type != "unix" & cores != 1) {
+    warning("non-unix systems, force cores to be 1")
+    cores = 1
+  }
+
 
   if (!is.logical(interactions) | is.na(interactions) | length(interactions)!=1 ) {
     stop("interactions should be TRUE or FALSE")
@@ -213,8 +228,9 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     stop("var4int should be NULL or a character scalar")
   }
   
-  if(!(is.atomic(min.nonmissing) & length(min.nonmissing)==1)) {
-    stop("min.nonmissing should be a scalar.")
+  if (!((is.numeric(min.nonmissing) | is.integer(min.nonmissing))
+    & length(min.nonmissing)==1)) {
+    stop("min.nonmissing should be a scalar number.")
   }
 
   if (!is.logical(return.models) | is.na(return.models) | length(return.models)!=1 ) {
