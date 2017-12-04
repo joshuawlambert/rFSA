@@ -99,3 +99,31 @@ test_that("checkfeas", {
   expect_equivalent(as.formula(res$table$formula[1]), as.formula("mpg~hp+wt"))
   expect_equal(res$table$criterion, 156.6523, tolerance=1e-5)
 })
+
+test_that("var4int", {
+  set.seed(123)
+  res <- FSA(formula="mpg~hp+wt", data=mtcars, fitfunc=lm,
+             quad=FALSE, interaction=FALSE, criterion=AIC,
+             minmax="min", numrs=1, m=2, var4int="cyl")
+  expect_equivalent(as.formula(res$table$formula[1]), as.formula("mpg~cyl+am"))
+  expect_equal(res$table$criterion, 167.2191, tolerance=1e-5)
+
+  set.seed(123)
+  res <- FSA(formula="mpg~hp+wt", data=mtcars, fitfunc=lm,
+             quad=FALSE, interaction=FALSE, criterion=AIC,
+             minmax="min", numrs=1, m=2, var4int="carb")
+  expect_equivalent(as.formula(res$table$formula[1]), as.formula("mpg~am+carb"))
+  expect_equal(res$table$criterion, 173.8342, tolerance=1e-5)
+})
+
+test_that("min.nonmissing", {
+  mtcars2 <- mtcars
+  mtcars2$cyl[-c(1,2)] <- NA
+  mtcars2$wt[-c(1,2)] <- NA
+  set.seed(123)
+  res <- FSA(formula="mpg~hp+wt", data=mtcars2, fitfunc=lm,
+             quad=FALSE, interaction=FALSE, criterion=AIC,
+             minmax="min", numrs=1, m=2, min.nonmissing=3)
+  expect_equivalent(as.formula(res$table$formula[1]), as.formula("mpg~hp+am"))
+  expect_equal(res$table$criterion, 164.0061, tolerance=1e-5)
+})
