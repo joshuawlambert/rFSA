@@ -45,8 +45,11 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   call <- match.call()
   original <- list()
   original$formula <- Reduce(paste, deparse(as.formula(formula)))
+  original$model <- fitfunc(formula=original$formula, data=data,...)
   original$model <- tryCatch(fitfunc(formula=original$formula, data=data, ...),
-                             error=function(e){NULL})
+                             error=function(e){
+                               warning("failed to fit the original model specified by formula")
+                               NULL})
 
 
   if (!(is.function(criterion) | is.list(criterion) & all(sapply(criterion,is.function)))) {
@@ -66,11 +69,16 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   if (length(criterion) == 1) {
     criterion = list(criterion)
   }
-
-  for (k in 1:length(criterion)) {
-    original[[paste0("criterion.",k)]] <- criterion[[k]](original$model)
-  }
   
+  for (k in 1:length(criterion)) {
+    if (is.null(original$model)) {
+      original[[paste0("criterion.",k)]] <- NA
+    } else {
+      original[[paste0("criterion.",k)]] <- criterion[[k]](original$model)
+    }
+      
+  }
+
   solutions <- NULL
   table <- NULL
   nfits <- 0
@@ -292,6 +300,7 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
       FUN = function(x)
       {
         tmp <- swaps(cur = key2pos(x), n=P+1, quad = quad,yindex = ypos)
+
         if (!is.null(var4int)) {
           tmp <- tmp[,which(apply(tmp==which(allname==var4int), MARGIN=2, FUN=any))]
         }
@@ -313,7 +322,8 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     ## will calculate the criterion and insert it into
     ## the hash table
     steps.noCri <- unique(unlist(steps))
-    steps.noCri <- steps.noCri[!Cri$has_key(steps.noCri)];
+    steps.noCri <- steps.noCri[!Cri$has_keys(steps.noCri)];
+
     if (length(steps.noCri) > 0 )
     {
       new.Cri <- mclapply(
@@ -356,6 +366,7 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     }
     
     ##Find the best next position for each current position
+
     unsolved.next <- unlist(mclapply(
       unsolved.cur, mc.cores=cores,
       FUN = function(key)
@@ -388,6 +399,8 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   ##************************************************************
   ## format outputs
   ##************************************************************
+  
+
   originalfit <- tryCatch(fitfunc(formula=formula, data=data,...),
                           error=function(e){NULL})
   original <- list(formula=Reduce(paste, deparse(formula)),
@@ -447,7 +460,6 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
               nfits=Cri$size(), nchecks=sum(info$check),
               original=original)
   class(res) <- "FSA"
-
   return(res)
 }
 

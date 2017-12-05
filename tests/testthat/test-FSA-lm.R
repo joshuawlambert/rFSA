@@ -96,8 +96,8 @@ test_that("checkfeas", {
   res <- FSA(formula = "mpg~hp+wt", data=mtcars, fitfunc=lm,
              quad=FALSE, interaction=FALSE, criterion=AIC,
              minmax="min", numrs=2, m=2, checkfeas=c("am","carb"))
-  expect_equivalent(as.formula(res$table$formula[1]), as.formula("mpg~hp+wt"))
-  expect_equal(res$table$criterion, 156.6523, tolerance=1e-5)
+  expect_equivalent(as.formula(res$table$formula[1]), as.formula("mpg~cyl+wt"))
+  expect_equal(res$table$criterion, 156.0101, tolerance=1e-5)
 })
 
 test_that("var4int", {
@@ -105,15 +105,15 @@ test_that("var4int", {
   res <- FSA(formula="mpg~hp+wt", data=mtcars, fitfunc=lm,
              quad=FALSE, interaction=FALSE, criterion=AIC,
              minmax="min", numrs=1, m=2, var4int="cyl")
-  expect_equivalent(as.formula(res$table$formula[1]), as.formula("mpg~cyl+am"))
-  expect_equal(res$table$criterion, 167.2191, tolerance=1e-5)
+  expect_equivalent(as.formula(res$table$formula[1]), as.formula("mpg~cyl+wt"))
+  expect_equal(res$table$criterion, 156.0101, tolerance=1e-5)
 
   set.seed(123)
   res <- FSA(formula="mpg~hp+wt", data=mtcars, fitfunc=lm,
              quad=FALSE, interaction=FALSE, criterion=AIC,
              minmax="min", numrs=1, m=2, var4int="carb")
-  expect_equivalent(as.formula(res$table$formula[1]), as.formula("mpg~am+carb"))
-  expect_equal(res$table$criterion, 173.8342, tolerance=1e-5)
+  expect_equivalent(as.formula(res$table$formula[1]), as.formula("mpg~wt+carb"))
+  expect_equal(res$table$criterion, 162.4404, tolerance=1e-5)
 })
 
 test_that("min.nonmissing", {
