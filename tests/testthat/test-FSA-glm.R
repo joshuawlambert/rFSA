@@ -94,4 +94,49 @@ test_that("checkfeas", {
   expect_equivalent(as.formula(res$table$formula[1]),as.formula("Class~ALBUMIN+PROTIME"))
   expect_equal(res$table$criterion,71.23756,tolerance=1e-5)
 })
-  
+
+test_that("var4int", {
+  set.seed(123)
+  res <- FSA(formula="Class~AGE",data=hepatitis,fitfunc=glm,
+             quad=FALSE,interaction=FALSE,criterion=BIC,
+             minmax="min",numrs=1,m=2,family="binomial",
+             var4int="ALBUMIN")
+  expect_equivalent(as.formula(res$table$formula[1]),as.formula("Class~ALBUMIN+PROTIME"))
+  expect_equal(res$table$criterion,71.23756,tolerance=1e-5)
+
+  set.seed(123)
+  res <- FSA(formula="Class~AGE",data=hepatitis,fitfunc=glm,
+             quad=FALSE,interaction=FALSE,criterion=BIC,
+             minmax="min",numrs=1,m=2,family="binomial",
+             var4int="PROTIME")
+  expect_equivalent(as.formula(res$table$formula[1]),as.formula("Class~ALBUMIN+PROTIME"))
+  expect_equal(res$table$criterion,71.23756,tolerance=1e-5)
+
+  set.seed(123)
+  res <- FSA(formula="Class~AGE",data=hepatitis,fitfunc=glm,
+             quad=FALSE,interaction=FALSE,criterion=BIC,
+             minmax="min",numrs=1,m=2,family="binomial",
+             var4int="ALK",return.models=TRUE)
+  expect_equivalent(as.formula(res$table$formula[1]),as.formula("Class~ALK+PROTIME"))
+  expect_equal(res$table$criterion,76.28424,tolerance=1e-5)
+})
+
+test_that("min.nonmissing", {
+  tmp <- hepatitis
+  tmp$ALBUMIN[10:nrow(tmp)] <- NA
+  set.seed(123)
+  res <- FSA(formula="Class~AGE",data=tmp,fitfunc=glm,
+             quad=FALSE,interaction=FALSE,criterion=BIC,
+             minmax="min",numrs=1,m=2,family="binomial",
+             min.nonmissing=10)
+  expect_equivalent(as.formula(res$table$formula[1]),as.formula("Class~ASCITES+PROTIME"))
+  expect_equal(res$table$criterion,71.73973,tolerance=1e-5)
+
+  set.seed(123)
+  res <- FSA(formula="Class~AGE",data=tmp,fitfunc=glm,
+             quad=FALSE,interaction=FALSE,criterion=BIC,
+             minmax="min",numrs=1,m=2,family="binomial",
+             min.nonmissing=7)
+  expect_equivalent(as.formula(res$table$formula[1]),as.formula("Class~MALAISE+ALBUMIN"))
+  expect_equal(res$table$criterion,3.89182,tolerance=1e-5)
+})
