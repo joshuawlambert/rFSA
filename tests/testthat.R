@@ -1,4 +1,4 @@
 library(testthat)
-library(rFSA2)
+library(rFSA)
 
-test_check("rFSA2")
+test_check("rFSA")
