@@ -7,6 +7,7 @@ Date: 2017-12-19
 Authors@R: as.person(c(
     "Joshua Lambert <joshua.lambert@uky.edu> [aut, cre]", 
     "Liyu Gong <liyu.gong@uky.edu> [aut]",
+    "Corrine Elliott <corrine.elliott@uky.edu> [ctb]"
     "Sarah Janse <sawi234@g.uky.edu> [ctb]"
  ))
 Author: "Joshua Lambert <joshua.lambert@uky.edu>
