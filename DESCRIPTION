@@ -2,7 +2,7 @@ Package: rFSA
 Type: Package
 Title: Feasible Solution Algorithm for Finding Best Subsets and
         Interactions
-Version: 0.3
+Version: 0.9
 Date: 2017-12-19
 Authors@R: as.person(c(
     "Joshua Lambert <joshua.lambert@uky.edu> [aut, cre]", 
