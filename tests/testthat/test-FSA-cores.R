@@ -13,7 +13,7 @@ N <- 100 #number of obs
 P <- 100 #number of variables
 data <- data.frame(matrix(rnorm(N*(P+1)), nrow = N, ncol = P+1))
 
-for (cores in c(1, parallel::detectCores())) {
+for (cores in c(1, min(2,parallel::detectCores()))) {
   test_that(paste0("random data, fixvar=NULL, cores=", cores), {
     skip_on_cran()
 
@@ -31,7 +31,10 @@ for (cores in c(1, parallel::detectCores())) {
         interactions = F, criterion = AIC, minmax = "min",
         numrs = numrs, return.models=FALSE)
     }
-    
+    ## res <- FSA(
+    ##   formula = "X101~1", data = data, cores = cores, m = 2,
+    ##   interactions = F, criterion = AIC, minmax = "min",
+    ##   numrs = numrs, return.models=FALSE)
 
     expect_equivalent(as.formula(res$table$formula), as.formula("X101~X7+X83"))
     expect_equal(res$table$criterion,266.028,
@@ -62,7 +65,7 @@ for (cores in c(1, parallel::detectCores())) {
   })
 }
 
-for (cores in c(1, parallel::detectCores())) {
+for (cores in c(1, min(2,parallel::detectCores()))) {
   test_that(paste0("mtcars data, fixvar=hp, cores=", cores),{
     skip_on_cran()
     
@@ -104,7 +107,7 @@ for (cores in c(1, parallel::detectCores())) {
   })
 }
 
-for (cores in c(1, parallel::detectCores())) {
+for (cores in c(1, min(2,parallel::detectCores()))) {
   test_that("two fix variables", {
     skip_on_cran()
     set.seed(123)
@@ -133,7 +136,7 @@ for (cores in c(1, parallel::detectCores())) {
   })
 }
 
-for (cores in c(1, parallel::detectCores())) {
+for (cores in c(1, min(2,parallel::detectCores()))) {
   test_that("glm",{
     set.seed(1000)
     if (.Platform$OS.type == "windows" & cores > 1) {
