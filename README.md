@@ -28,28 +28,48 @@ In R, a commond test dataset to analyze is `mtcars`. For this example we will us
 data(mtcars)
 help(mtcars)
 ```
-For this example, let us assume that we have already found that the weight(wt) and the number of cylinders(cyc) in a car are statistically signficant predictors of Miles Per Gallon(mpg) for that car. And, let's say that we wish to explore two-way interactions for inclusion in or model with wt and cyc. To do this with rFSA, we would run the following code:
+For this example, let us assume that we have already found that the weight(wt) and the number of cylinders(cyc) in a car are statistically signficant predictors of Miles Per Gallon(mpg) for that car. And, let's say that we wish to explore two-way interactions for inclusion in or model with wt and cyc. 
+
+To do this with rFSA, we could run the following code:
 ```R
 install.packages(rFSA) #or install_github("joshuawlambert/rFSA")
 library(rFSA)
 data(mtcars)
 
-fsaFit<-FSA(
-formula="mgp~wt+cyc", #Model that you wish to compare new models to. The variable to the left of the '~' will be used as the response variable in all model fits
-data=mtcars, #specify dataset 
-fitfunc = lm, #method you wish to use 
-fixvar = c('wt','cyc'), # variables that should be fixed in every model that is considered 
-quad = FALSE, #should quadratic terms be considered by rFSA (example: wt^2)
-m = 2, #order of interaction or subset to consider
-numrs = 10, #number of random starts to do 
-cores = 1,  #*FOR LINUX USERS ONLY* uses parallel package to use multiple cores if available. 
-interactions = TRUE, #If TRUE, then the m variables under condsideration will be added to the model with a '*' between them, if FALSE then the m variables will be added to the model with a '+' between them. Basically, do you want to look for interactions or best subsets.
-criterion = AIC, #Criterion function used to asses model fit
-minmax = "min", #Should Criterion function be minimized ('min') or maximized ('max').
-checkfeas = NULL, #Choose a starting place for FSA. If used, should be a vector same length as m from above. Example: c('wt','cyc')
-var4int = NULL, #Variable to fix in interaction. Useful when considering 3 or more way interactions.
-min.nonmissing = 1, #Don't consider models that have less than or equal to this number of observations
-return.models = FALSE #should all models that are checked be returned? Useful when you want to ploc criterion history.
-)
-```
+set.seed(123)
 
+fsaFit<-FSA(
+  formula="mpg~wt+cyl", #Model that you wish to compare new models to. The variable to the left of the '~' will be used as the response variable in all model fits
+  data=mtcars, #specify dataset 
+  fitfunc = lm, #method you wish to use 
+  fixvar = c('wt','cyl'), # variables that should be fixed in every model that is considered 
+  m = 2, #order of interaction or subset to consider
+  numrs = 10, #number of random starts to do 
+  interactions = TRUE, #If TRUE, then the m variables under condsideration will be added to the model with a '*' between them, if FALSE then the m variables will be added to the model with a '+' between them. Basically, do you want to look for interactions or best subsets.
+  criterion = adj.r.squared, #Criterion function used to asses model fit
+  minmax = "max" #Should Criterion function be minimized ('min') or maximized ('max').
+  
+)
+
+fsaFit #shows results from running FSA
+print(fsaFit) #shows results from running FSA
+summary(fsaFit) #shows summary from all models found by FSA
+plot(fsaFit) #plots diagnostic plots for all models found by FSA
+fitted(fsaFit) #fitted values from all models found by FSA
+predict(fsaFit) #predicted values from all models found by FSA, can also add newdata command.
+```
+As we can see from `print(fsaFit)`, from the 10 random starts there were 2 feasible solutions (FS). The two feasible included an interaction between hp*wt and drat*carb.  Each of these FS happened 9 and 1 respectively. After looking at `summary(fsaFit)` we can see that hp*wt is statistically significant (p-value<0.01) and drat*carb is marginally significant (p-value ~= 0.06). If we wished to find interactions that were significant, we could change `criterion=int.p.val` and `minmax = "min"`. Do so, will yeild one FS: hp*wt.
+
+Following up these results with sufficient checks into model fit and diagnositic plots is . 
+
+
+Other options for the FSA function in rFSA include: 
+```R
+cores = 1  #*FOR LINUX USERS ONLY* uses parallel package to use multiple cores if available. 
+quad = FALSE #should quadratic terms be considered by rFSA (example: wt^2)
+checkfeas = NULL #Choose a starting place for FSA. If used, should be a vector same length as m from above. Example: c('wt','cyc')
+var4int = NULL #Variable to fix in interaction. Useful when considering 3 or more way interactions.
+min.nonmissing = 1 #Don't consider models that have less than or equal to this number of observations
+return.models = FALSE #should all models that are checked be returned? Useful when you want to ploc criterion history.
+```
+see `help(rFSA)' for more details.
