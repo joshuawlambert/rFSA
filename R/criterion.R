@@ -176,4 +176,35 @@ list.criterion<-function(){
   show("You can write your own criterion function too! Or use other criterion functions from other packages. Just follow the standard format used in int.p.val or apress as an example.")
 }
 
+#' Calculate QICu: Internal function only
+#' @description Computes Quasi Likelihood under the independence criterion  
+#' @param gee.obj geeglm obj
+#' @export
+QICu.calc = function(gee.obj){
+  Y.hat = gee.obj$fitted.values
+  Y = gee.obj$y
+  p = gee.obj$rank  # number of parameters
+  fam = gee.obj$family$family  # family
+  
+  # quasi-Likelihood (calculation depends on family)
+  qL = switch(fam,
+              binomial = sum(Y * log(Y.hat / (1-Y.hat)) + log(1 - Y.hat)),
+              gaussian = sum(-0.5 * (Y - Y.hat)**2),
+              Gamma = sum(-Y/Y.hat - log(Y.hat)),
+              inverse.gaussian = sum(-0.5 * (Y / (Y.hat**2)) + 1/Y.hat),
+              poisson = sum(Y * log(Y.hat) - Y.hat), 
+              NA)  # default action
+  #qL = sum(Y * log(Y.hat / (1-Y.hat)) + log(1 - Y.hat))  # binomial quasi-Likelihood
+  
+  return(-2*qL + 2*p)  # QICu
+}
 
+#' Return QICu for rFSA
+#' @description Return QICu for rFSA
+#' @param gee.obj geeglm obj
+#' @export
+QICu.geeglm = function(gee.obj){ 
+  tryCatch(expr = QICu.calc(gee.obj), 
+           error = function(e){ print(e); return(NA) }, 
+           warning = function(e){ print(e); return(NA) } )
+}
