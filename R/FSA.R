@@ -44,9 +44,9 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
 {
   call <- match.call()
   original <- list()
-  original$formula <- Reduce(paste, deparse(as.formula(formula)))
+  original$formula <- as.formula(Reduce(paste, deparse(as.formula(formula))))
   #original$model <- fitfunc(formula=original$formula, data=data,...)
-  original$model <- tryCatch(fitfunc(formula=as.formula(original$formula), data=data, ...),
+  original$model <- tryCatch(fitfunc(formula=original$formula, data=data, ...),
                              error=function(e){
                                warning("failed to fit the original model specified by formula")
                                NULL})
