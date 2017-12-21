@@ -14,3 +14,11 @@ bdist(model, name = "B Distance")
 \description{
 rFSA Criterion Function to compute the Bhattacharyya distance.
 }
+\examples{
+#To use Bhattacharyya Distance and FSA the response must be binary, and you must
+#be considering searching for two way continuous interactions. 
+data(mtcars)
+fit<-FSA(formula = "am~gear*hp",data = mtcars,
+fitfunc = glm,family="binomial",m = 2,cores=1,
+interactions = T,criterion = bdist,minmax = "max")
+}

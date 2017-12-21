@@ -2,20 +2,19 @@ Package: rFSA
 Type: Package
 Title: Feasible Solution Algorithm for Finding Best Subsets and
         Interactions
-Version: 0.9
-Date: 2017-12-19
-Authors@R: as.person(c(
-    "Joshua Lambert <joshua.lambert@uky.edu> [aut, cre]", 
-    "Liyu Gong <liyu.gong@uky.edu> [aut]",
-    "Corrine Elliott <corrine.elliott@uky.edu> [ctb]",
-    "Sarah Janse <sawi234@g.uky.edu> [ctb]"
- ))
-Author: "Joshua Lambert <joshua.lambert@uky.edu>
-Maintainer: "Joshua Lambert <joshua.lambert@uky.edu>
-Description: Uses the lm(), glm(), and other R functions to fit models
-    generated from a feasible solution algorithm. The feasible solution algorithm comes up with model forms of a
-    specific type that can have fixed variables, higher order interactions and their
-    lower order terms.
+Version: 0.9.1
+Date: 2017-12-21
+Authors@R: c(
+    person(given="Joshua",family="Lambert",email="joshua.lambert@uky.edu",role=c("aut","cre")),
+    person(given="Liyu",family="Gong",email="liyu.gong@uky.edu",role="aut"),
+    person(given="Corrine",family="Elliott",email="corrine.elliott@uky.edu",role="ctb"),
+    person(given="Sarah",family="Janse",email="sawi234@g.uky.edu",role="ctb"))
+Description: Assists in statistical model building to find optimal and semi-optimal higher order interactions
+    and best subsets. Uses the lm(), glm(), and other R functions to fit models generated from a feasible 
+    solution algorithm. Discussed in Subset Selection in Regression, A Miller (2002). Applied and explained
+    for least median of squares in Hawkins (1993) <doi:10.1016/0167-9473(93)90246-P>. The feasible solution 
+    algorithm comes up with model forms of a specific type that can have fixed variables, higher order 
+    interactions and their lower order terms.
 License: GPL-2
 LazyData: TRUE
 Imports: parallel, hashmap, methods, tibble
