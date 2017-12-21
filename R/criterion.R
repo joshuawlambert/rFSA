@@ -90,7 +90,7 @@ int.p.val <- function(model,name = "Interaction P-Value") {
 #' data(mtcars)
 #' fit<-FSA(formula = "am~gear*hp",data = mtcars,
 #' fitfunc = glm,family="binomial",m = 2,cores=1,
-#' interactions = T,criterion = bdist,minmax = "max")
+#' interactions = TRUE,criterion = bdist,minmax = "max")
 bdist <- function(model,name = "B Distance") {
   if(length(grep(":",names(model$coefficients)))==0){return(0)} #no interaction in model to check
   if(model$family$link!="logit"){return(0)} #not logistic regression

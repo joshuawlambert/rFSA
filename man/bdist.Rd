@@ -20,5 +20,5 @@ rFSA Criterion Function to compute the Bhattacharyya distance.
 data(mtcars)
 fit<-FSA(formula = "am~gear*hp",data = mtcars,
 fitfunc = glm,family="binomial",m = 2,cores=1,
-interactions = T,criterion = bdist,minmax = "max")
+interactions = TRUE,criterion = bdist,minmax = "max")
 }

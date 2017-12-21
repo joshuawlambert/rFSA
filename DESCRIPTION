@@ -7,7 +7,7 @@ Date: 2017-12-21
 Authors@R: c(
     person(given="Joshua",family="Lambert",email="joshua.lambert@uky.edu",role=c("aut","cre")),
     person(given="Liyu",family="Gong",email="liyu.gong@uky.edu",role="aut"),
-    person(given="Corrine",family="Elliott",email="corrine.elliott@uky.edu",role="ctb"),
+    person(given="Corrine",family="Elliott",email="corrine.elliott@uky.edu",role="aut"),
     person(given="Sarah",family="Janse",email="sawi234@g.uky.edu",role="ctb"))
 Description: Assists in statistical model building to find optimal and semi-optimal higher order interactions
     and best subsets. Uses the lm(), glm(), and other R functions to fit models generated from a feasible 
