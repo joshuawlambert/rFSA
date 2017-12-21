@@ -212,8 +212,7 @@ QICu.geeglm = function(gee.obj){
     
     return(-2*qL + 2*p)  # QICu
   },
-  error = function(e){ print(e); return(NA) }, 
-  warning = function(e){ print(e); return(NA) } )
+  error = function(e){ print(e); return(NA) } )
 }
 
 
