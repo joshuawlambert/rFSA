@@ -10,7 +10,7 @@
 #' @importFrom stats AIC anova as.formula cov fitted formula glm influence lm predict resid var
 #' @importFrom utils capture.output tail
 #' @export
-swaps<-function(cur,n,quad=FALSE,yindex){
+function(cur,n,quad=FALSE,yindex){
   m <- length(cur)
   if (!quad) {
     l <- (n - m) * m
@@ -33,7 +33,9 @@ swaps<-function(cur,n,quad=FALSE,yindex){
   }
   vec <- cbind(cur, t(possible))
   vec<-unique(apply(vec, sort, MARGIN = 2), MARGIN = 2)
+  if(length(dim(vec))==0){vec<-t(vec)}
   vec<-vec[,-which(apply(apply(X = vec,MARGIN = 1,function(x){x==yindex}),MARGIN = 1,FUN = any))]
+  if(length(dim(vec))==0){vec<-t(vec)}
   return(vec)
 }
 #' Variables to include in the >1st step of an mth order interaction model determined from the Feasible Soution Alorithm.
