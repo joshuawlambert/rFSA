@@ -178,7 +178,7 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
 
   if (!is.null(fixvar) && !is.character(fixvar)) {
     stop("fixvar should be NULL or a character vector")
-  } else if (!all(fixvar %in% allname)) {
+  } else if (!all(unlist(strsplit(fixvar,split="[*]")) %in% allname)) {
     stop(paste("fixvar", unlist(strsplit(fixvar,split="[*]"))[!(unlist(strsplit(fixvar,split="[*]")) %in% allname)],
                "does not exist in data"))
   }
