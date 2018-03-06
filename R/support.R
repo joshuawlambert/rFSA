@@ -10,7 +10,7 @@
 #' @importFrom stats AIC anova as.formula cov fitted formula glm influence lm predict resid var
 #' @importFrom utils capture.output tail
 #' @export
-function(cur,n,quad=FALSE,yindex){
+swaps<-function(cur,n,quad=FALSE,yindex){
   m <- length(cur)
   if (!quad) {
     l <- (n - m) * m
