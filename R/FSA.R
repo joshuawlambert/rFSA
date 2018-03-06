@@ -189,9 +189,10 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
 
   if (!(is.numeric(m) | is.integer(m)) | length(m)!=1) {
     stop("m should be a scalar")
-  } else if (m<2) {
-    stop("m should be greater than or equal 2")
-  }
+  } 
+  #else if (m<2) {
+  #  stop("m should be greater than or equal 2")
+  #}
 
   if (!(is.numeric(numrs) | is.integer(numrs)) | length(numrs)!=1) {
     stop("numrs should be a scalar")
