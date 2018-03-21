@@ -116,3 +116,11 @@ test_that("return.models", {
   expect_error(FSA(formula="mpg~.", data=mtcars, return.models=FALSE),NA)
 })
 
+test_that("fix.formula", {
+  expect_error(FSA(formula="mpg~.", data=mtcars, fix.formula="a*b*c"))
+  expect_error(FSA(formula="mpg~.", data=mtcars, fix.formula=1))
+  expect_error(FSA(formula="mpg~.", data=mtcars, fix.formula=NA))
+  expect_error(FSA(formula="mpg~.", data=mtcars, fix.formula=NaN))
+  expect_error(FSA(formula="mpg~.", data=mtcars, fix.formula=c("a","b","c")))
+})
+

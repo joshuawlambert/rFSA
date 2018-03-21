@@ -40,7 +40,7 @@
 FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
                 m = 2, numrs = 1, cores=1, interactions = T,
                 criterion = AIC, minmax="min", checkfeas=NULL, var4int=NULL,
-                min.nonmissing=1, return.models=FALSE, ...)
+                min.nonmissing=1, return.models=FALSE, fix.formula=NULL,...)
 {
   call <- match.call()
   original <- list()
@@ -88,7 +88,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
                   m=m, numrs=numrs, cores=cores, interactions=interactions,
                   criterion=criterion[[k]], minmax=minmax[k], checkfeas=checkfeas,
                   var4int=var4int, min.nonmissing=min.nonmissing,
-                  return.models=return.models, ...)
+                  return.models=return.models, fix.formula=fix.formula,...)
     
     ## merge table
     table.0 <- fit$table
@@ -152,7 +152,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
 fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
                 m = 2, numrs = 1, cores=1, interactions = TRUE,
                 criterion = AIC, minmax="min", checkfeas=NULL, var4int=NULL,
-                min.nonmissing=1, return.models=FALSE, ...)
+                min.nonmissing=1, return.models=FALSE, fix.formula=NULL,...)
 {
   ##************************************************************
   ## check inputs
@@ -161,7 +161,7 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
 
   data <- as.data.frame(data)
   allname <- colnames(data)
-  ##yname <- all.vars(formula)[1]
+
   if (!all(all.vars(formula) %in% c(allname, "."))) {
     stop(paste("variable",
                all.vars(formula)[!(all.vars(formula)%in%c(allname,"."))],
@@ -246,6 +246,18 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   if (!is.logical(return.models) | is.na(return.models) | length(return.models)!=1 ) {
     stop("return.models should be TRUE or FALSE")
   }
+
+  if (!(is.null(fix.formula) | is.character(fix.formula) & length(fix.formula)==1)){
+    stop("fix.formula should be NULL or a character scalar")
+  }
+  if (!is.null(fix.formula)) {
+    ## check whether variables in fix.formula exist in the dataset
+    tmp = paste0('~', fix.formula)
+    if (!all(all.vars(as.formula(tmp)) %in% allname)) {
+      stop("there are variables in fix.formula do not exist in dataset")
+    }
+  }
+  
   
   which.best <- switch(tolower(minmax), min=which.min, max=which.max)
   bad.cri <- switch(tolower(minmax), min=Inf, max=-Inf)
@@ -273,6 +285,9 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     str = paste0(yname,"~")
     if(!is.null(fixvar)) {
       str=paste0(str,paste0(fixvar,collapse="+"),"+")
+    }
+    if(!is.null(fix.formula)) {
+      str=paste0(str, fix.formula, "+")
     }
     str=paste0(str,paste0(allname[val], collapse=ifelse(isTRUE(interactions),"*","+")))
   }
