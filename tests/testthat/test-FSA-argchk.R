@@ -35,8 +35,8 @@ test_that("m", {
   expect_error(FSA(formula="mpg~.", data=mtcars, m="a"))
   expect_error(FSA(formula="mpg~.", data=mtcars, m=NULL))
   expect_error(FSA(formula="mpg~.", data=mtcars, m=NA))
-  expect_error(FSA(formula="mpg~.", data=mtcars, m=1,fixvar="vs"))
-  expect_error(FSA(formula="mpg~.", data=mtcars, m=1))
+  expect_error(FSA(formula="mpg~.", data=mtcars, m=1,fixvar="vs"),NA)
+  expect_error(FSA(formula="mpg~.", data=mtcars, m=1),NA)
   expect_error(FSA(formula="mpg~.", data=mtcars, m=2),NA)
 })
 
