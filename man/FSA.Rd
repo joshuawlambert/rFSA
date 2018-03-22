@@ -9,7 +9,7 @@
 FSA(formula, data, fitfunc = lm, fixvar = NULL, quad = FALSE, m = 2,
   numrs = 1, cores = 1, interactions = T, criterion = AIC,
   minmax = "min", checkfeas = NULL, var4int = NULL, min.nonmissing = 1,
-  return.models = FALSE, ...)
+  return.models = FALSE, fix.formula = NULL, ...)
 
 lmFSA(...)
 
