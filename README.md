@@ -72,4 +72,4 @@ var4int = NULL #Variable to fix in interaction. Useful when considering 3 or mor
 min.nonmissing = 1 #Don't consider models that have less than or equal to this number of observations
 return.models = FALSE #should all models that are checked be returned? Useful when you want to ploc criterion history.
 ```
-see `help(rFSA)' for more details.
+see `help(FSA)' for more details.
