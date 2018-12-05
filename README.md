@@ -85,5 +85,5 @@ library(sjPlot)
 sjPlot::plot_model(fit[[2]],type = "int")
 sjPlot::plot_model(fit[[3]],type = "int")
 ```
-![Feasible solution 1](https://github.com/joshuawlambert/Presentations/blob/master/FS1.png
+![Feasible solution 1](https://github.com/joshuawlambert/Presentations/blob/master/FS1.png)
 ![Feasible solution 2](https://github.com/joshuawlambert/Presentations/blob/master/FS2.png)
