@@ -75,9 +75,9 @@ return.models = FALSE #should all models that are checked be returned? Useful wh
 see `help(FSA)' for more details.
 
 ## Visualizing Interactions
-Visualizing can be quite difficult depending on the types of variables that are involved in your relationship. This package's goal is not to assist the user in visualizing the interaction, but the authors recognize that visual tools are often quite useful conveying the results from a statistical model. 
+Visualizing interactions can be quite difficult depending on the types of variables that are involved in your relationship. This package's goal is not to assist the user in visualizing the interaction, but the authors recognize that visual tools are often quite useful conveying the results from a statistical model. 
 
-The *sjPlot* package is very useful for plotting interactions. More infromatin about the *sjPlot* package can be found here: http://www.strengejacke.de/sjPlot/. 
+We have found the *sjPlot* package to be very useful for plotting 2-way interactions. More information about the *sjPlot* package can be found here: http://www.strengejacke.de/sjPlot/. 
 
 For our mtcars example, the two interactions that were found can be plotted very easy using the *sjPlot* function *plot_model*. Below is some example code:
 ```R
