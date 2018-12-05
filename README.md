@@ -58,7 +58,7 @@ plot(fsaFit) #plots diagnostic plots for all models found by FSA
 fitted(fsaFit) #fitted values from all models found by FSA
 predict(fsaFit) #predicted values from all models found by FSA, can also add newdata command.
 ```
-As we can see from `print(fsaFit)`, from the 10 random starts there were 2 feasible solutions (FS). The two feasible included an interaction between hp*wt and drat*carb.  Each of these FS happened 9 and 1 respectively. After looking at `summary(fsaFit)` we can see that hp*wt is statistically significant (p-value<0.01) and drat*carb is marginally significant (p-value ~= 0.06). If we wished to find interactions that were significant, we could change `criterion=int.p.val` and `minmax = "min"`. Do so, will yeild one FS: hp*wt.
+As we can see from `print(fsaFit)`, from the 10 random starts there were 2 feasible solutions (FS). The two feasible included an interaction between hp*wt and drat*carb.  Each of these FS happened 9 and 1 respectively. After looking at `summary(fsaFit)` we can see that hp***wt is statistically significant (p-value<0.01) and drat***carb is marginally significant (p-value ~= 0.06). If we wished to find interactions that were significant, we could change `criterion=int.p.val` and `minmax = "min"`. Do so, will yeild one FS: hp*wt.
 
 Following up these results with sufficient checks into model fit and diagnositic plots is . 
 
