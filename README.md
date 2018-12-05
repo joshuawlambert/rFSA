@@ -58,7 +58,7 @@ plot(fsaFit) #plots diagnostic plots for all models found by FSA
 fitted(fsaFit) #fitted values from all models found by FSA
 predict(fsaFit) #predicted values from all models found by FSA, can also add newdata command.
 ```
-As we can see from `print(fsaFit)`, from the 10 random starts there were 2 feasible solutions (FS). The two feasible included an interaction between hp*wt and drat*carb.  Each of these FS happened 9 and 1 respectively. After looking at `summary(fsaFit)` we can see that hp***wt is statistically significant (p-value<0.01) and drat***carb is marginally significant (p-value ~= 0.06). If we wished to find interactions that were significant, we could change `criterion=int.p.val` and `minmax = "min"`. Do so, will yeild one FS: hp*wt.
+As we can see from `print(fsaFit)`, from the 10 random starts there were 2 feasible solutions (FS). The two feasible included an interaction between hp*wt and drat*carb.  Each of these FS happened 9 and 1 respectively. After looking at `summary(fsaFit)` we can see that hp and wt interaction is statistically significant (p-value<0.01) and drat and carb interaction is marginally significant (p-value ~= 0.06). If we wished to find interactions that were significant, we could change `criterion=int.p.val` and `minmax = "min"`. Do so, will yeild one FS: hp*wt.
 
 Following up these results with sufficient checks into model fit and diagnositic plots is . 
 
@@ -73,3 +73,17 @@ min.nonmissing = 1 #Don't consider models that have less than or equal to this n
 return.models = FALSE #should all models that are checked be returned? Useful when you want to ploc criterion history.
 ```
 see `help(FSA)' for more details.
+
+## Visualizing Interactions
+Visualizing can be quite difficult depending on the types of variables that are involved in your relationship. This package's goal is not to assist the user in visualizing the interaction, but the authors recognize that visual tools are often quite useful conveying the results from a statistical model. 
+
+The *sjPlot* package is very useful for plotting interactions. More infromatin about the *sjPlot* package can be found here: http://www.strengejacke.de/sjPlot/. 
+
+For our mtcars example, the two interactions that were found can be plotted very easy using the *sjPlot* function *plot_model*. Below is some example code:
+```R
+library(sjPlot)
+sjPlot::plot_model(fit[[2]],type = "int")
+sjPlot::plot_model(fit[[3]],type = "int")
+```
+![Feasible solution 1](https://github.com/joshuawlambert/Presentations/blob/master/FS1.png
+![Feasible solution 2](https://github.com/joshuawlambert/Presentations/blob/master/FS2.png)
