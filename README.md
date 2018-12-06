@@ -82,6 +82,8 @@ We have found the *sjPlot* package to be very useful for plotting 2-way interact
 For the mtcars example above, the two interactions that were found can be plotted very easy using the *sjPlot* function *plot_model* with the *type="int"* option. Below is some example code:
 ```R
 library(sjPlot)
+library(rFSA)
+fit<-rFSA::fitmodels(fsaFit)
 sjPlot::plot_model(fit[[2]],type = "int")
 sjPlot::plot_model(fit[[3]],type = "int")
 ```
