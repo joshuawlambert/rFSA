@@ -1,4 +1,4 @@
-[rFSA Total Downloads:](https://cranlogs.r-pkg.org/badges/grand-total/rFSA)
+![rFSA Total Downloads](https://cranlogs.r-pkg.org/badges/grand-total/rFSA)
 
 # Overview
 This R package utilizes an exchange algorithm to find best higher order interactions, and best subsets in statistical models. The algorithm searches the data space for models of a specified form that are statistically optimal. Many replications of this algorithm will produce a set of `feasible solutions', which the researcher can investigate. The algorithm can help improve existing models used in bioinformatics, health care, or other fields which have yet to explore quadratic terms, interactions, or a higher order of predictors because of the size of their datasets. The package, rFSA, is flexible to many different statistical methods and criteria functions. Statistical methods in R that have a formula, and data command can be used by rFSA to search for interactions or best subsets. Users can use common criterion functions (R squared, AIC, PRESS, ... ) or write their own.
