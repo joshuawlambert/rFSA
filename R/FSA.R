@@ -83,6 +83,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   table <- NULL
   nfits <- 0
   nchecks <- 0
+  criData<-NULL
   for (k in 1:length(criterion)) {
     fit <- fitFSA(formula, data, fitfunc=fitfunc, fixvar=fixvar, quad=quad,
                   m=m, numrs=numrs, cores=cores, interactions=interactions,
@@ -131,6 +132,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     
     nfits <- nfits + fit$nfits
     nchecks <- nchecks + fit$nchecks
+    criData<-rbind(criData,cbind(fit$criData,k))
   }
 
   P <- ncol(data)
@@ -143,7 +145,7 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
 
   res <- list(original=original, call=call,
               solutions=solutions, table=table,
-              efficiency=efficiency, nfits=nfits, nchecks=nchecks)
+              efficiency=efficiency, nfits=nfits, nchecks=nchecks, criData=criData)
   class(res) <- "FSA"
   return(res)
 }
@@ -472,10 +474,11 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     })
   }
 
-
+  criData<-Cri$data.frame()
+  
   res <- list(solutions=solutions, table=table,
               nfits=Cri$size(), nchecks=sum(info$check),
-              original=original)
+              original=original, criData=criData)
   class(res) <- "FSA"
   return(res)
 }
