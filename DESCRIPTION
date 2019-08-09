@@ -2,7 +2,7 @@ Package: rFSA
 Type: Package
 Title: Feasible Solution Algorithm for Finding Best Subsets and
         Interactions
-Version: 0.9.3
+Version: 0.9.4
 Date: 2019-03-12
 Authors@R: c(
     person(given="Joshua",family="Lambert",email="joshua.lambert@uky.edu",role=c("aut","cre")),
@@ -17,6 +17,5 @@ Description: Assists in statistical model building to find optimal and semi-opti
     interactions and their lower order terms.
 License: GPL-2
 LazyData: TRUE
-Imports: parallel, hashmap, methods, tibble
-RoxygenNote: 6.0.1
-Suggests: testthat
+Imports: parallel, hashmap, methods, tibble, rPref, tidyr
+RoxygenNote: 6.1.1

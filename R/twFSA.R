@@ -25,7 +25,7 @@ twFSA<-function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
 
     ## call FSA
     res <- FSA(formula=formula.1, data=data, fitfunc=fitfunc, fixvar=fixvar,
-               m = 2, interaction=interaction, fix.formula=fix.formula.1,
+               m = 2, interactions=interaction, fix.formula=fix.formula.1,
                quad=quad, cores=cores, criterion=criterion, minmax=minmax,
                checkfeas=checkfeas, var4int=var4int,
                min.nonmissing=min.nonmissing, return.models = FALSE)

@@ -215,5 +215,15 @@ QICu.geeglm = function(gee.obj){
   error = function(e){ print(e); return(NA) } )
 }
 
+#' Return maximum absolute residual from a model
+#' @description Return maximum absolute residual from a model
+#' @param model  model obj
+#' @importFrom graphics par plot
+#' @importFrom stats AIC anova as.formula cov fitted formula glm influence lm predict resid var
+#' @importFrom utils capture.output tail 
+#' @export
+max_abs_resid<-function(model){
+  return(min(abs(summary(object = model)$residuals)))
+}
 
 
