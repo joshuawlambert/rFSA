@@ -49,7 +49,11 @@ pFSA <- function(numFronts=2,pselExpr=NULL,plot.it=TRUE,formula, data, fitfunc=l
     stop("for Pareto Optimality you need atleast two criteria functions")
   }
   
-  fsaFit<-FSA(formula = formula, data = data,...)
+  fsaFit<-FSA(formula, data, fitfunc=fitfunc, fixvar=fixvar, quad=quad,
+              m=m, numrs=numrs, cores=cores, interactions=interactions,
+              criterion=criterion, minmax=minmax, checkfeas=checkfeas,
+              var4int=var4int, min.nonmissing=min.nonmissing,
+              return.models=return.models, fix.formula=fix.formula,...)
   
   fits<-spread(fsaFit$criData,key = k,value = Values)
   fits2<-fits
