@@ -59,7 +59,7 @@ pFSA <- function(numFronts=2,pselExpr=NULL,plot.it=TRUE,formula, data, fitfunc=l
   fits2<-fits
 
   ans<-matrix(data = unlist(mclapply(X = 1:dim(fits2)[1],mc.cores = cores,FUN = function(x){
-    if(interactions==TRUE){int="*} else {int="+"}
+    if(interactions==TRUE){int="*"} else {int="+"}
     form<-as.formula(paste(all.vars(as.formula(formula))[1],"~",paste(colnames(data)[eval(parse(text=paste0("c(", fits[x,1], ")")))],collapse= int)))
     fit_tmp<-fitfunc(formula=form, data=data,...)
     tmp<-NULL
