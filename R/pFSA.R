@@ -59,8 +59,8 @@ pFSA <- function(numFronts=2,pselExpr=NULL,plot.it=TRUE,formula, data, fitfunc=l
   fits2<-fits
 
   ans<-matrix(data = unlist(mclapply(X = 1:dim(fits2)[1],mc.cores = cores,FUN = function(x){
-    
-    form<-as.formula(paste(all.vars(as.formula(formula))[1],"~",paste(colnames(data)[eval(parse(text=paste0("c(", fits[x,1], ")")))],collapse= "+")))
+    if(interactions==TRUE){int="*} else {int="+"}
+    form<-as.formula(paste(all.vars(as.formula(formula))[1],"~",paste(colnames(data)[eval(parse(text=paste0("c(", fits[x,1], ")")))],collapse= int)))
     fit_tmp<-fitfunc(formula=form, data=data,...)
     tmp<-NULL
     for(i in 1:(length(criterion))){
@@ -77,7 +77,6 @@ pFSA <- function(numFronts=2,pselExpr=NULL,plot.it=TRUE,formula, data, fitfunc=l
   fits2[,-1]<-apply(X = fits2[,-1],MARGIN = 2,FUN = as.numeric)
   colnames(fits2)<-c("Key",cname)
   pbound<-psel(df = fits2,pselExpr,top=nrow(fits2))
-  pbound[which(pbound$.level>2),]$.level=0
   pbound$.level<-pbound$.level+1
   show(pbound)
   if(plot.it==TRUE){
