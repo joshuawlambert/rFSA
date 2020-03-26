@@ -17,9 +17,10 @@
 #' @param var4int specification of which variables to check for marginal feasiblilty. Default is NULL
 #' @param min.nonmissing the combination of predictors will be ignored unless this many of observations are not missing
 #' @param return.models bool value to specify whether return all the fitted models which have been checked
+#' @param fix.formula ...
 #' @param ... other arguments passed to fitfunc.
 #'
-#' @import hashmap
+#' @import hash
 #' @importFrom parallel mclapply
 #' @import tibble
 #' @return matrix of results
@@ -298,8 +299,11 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   ## Initilize a hash table to store criterion for the computed
   ## combinations. The keys used to index criterions are
   ## produced by pos2key, and could be decoded by key2pos
-  Cri <- hashmap("",1)
-  Cri$erase("")
+  # Cri <- hashmap("",1) #old code V0.9.4 removed because package hashmap removed from CRAN
+  # Cri$erase("") #old code V0.9.4
+  Cri<-hash("A",1)
+  delete("A",Cri)
+  
   if (isTRUE(return.models)) {
     MDL <- list()
   }
@@ -309,8 +313,10 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     check=0, steps=as.list(starts), history=as.list(starts))
 
   unsolved.mask <- is.na(info$solution)
+  
   while(any(unsolved.mask))
   {
+    
     info$iteration[unsolved.mask] <- info$iteration[unsolved.mask] + 1
     unsolved.cur <- info$current[unsolved.mask]
 
@@ -341,8 +347,9 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     ## will calculate the criterion and insert it into
     ## the hash table
     steps.noCri <- unique(unlist(steps))
-    steps.noCri <- steps.noCri[!Cri$has_keys(steps.noCri)];
-
+    #steps.noCri <- steps.noCri[!Cri$has_keys(steps.noCri)]; #old code V0.9.4
+    steps.noCri <- steps.noCri[!has.key(steps.noCri,Cri)]
+    
     if (length(steps.noCri) > 0 )
     {
       new.Cri <- mclapply(
@@ -376,24 +383,25 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
 
       if (isTRUE(return.models)) {
         for (k in 1:length(steps.noCri)) {
-          Cri[[steps.noCri[k]]] <- new.Cri[[k]]$criterion
+          Cri[steps.noCri[k]] <- new.Cri[[k]]$criterion
           MDL[[steps.noCri[k]]] <- new.Cri[[k]]$model
         }
       } else {
-        Cri[[steps.noCri]] <- unlist(new.Cri)
+        Cri[steps.noCri] <- unlist(new.Cri)
       }
     }
-    
     ##Find the best next position for each current position
-
+    
     unsolved.next <- unlist(mclapply(
       unsolved.cur, mc.cores=cores,
       FUN = function(key)
       {
         step <- steps[[key]]
-        step[which.best(Cri[[step]])]
+        #step[which.best(Cri[[step]])] Old Code V0.9.4
+        names(which.best(values(Cri[step])))
       }
     ))
+    
     stopifnot(length(unsolved.cur)==length(unsolved.next))
 
     for (k in 1:length(unsolved.cur)) {
@@ -438,8 +446,10 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
       info$solution,
       FUN=function(key){allname[key2pos(key)[k]]})
   }
-  solutions$criterion <- Cri[[info$solution]]
+
+  solutions$criterion <- values(Cri)[info$solution]
   solutions$swaps <- info$iteration
+
   if (isTRUE(return.models)) {
     solutions <- as.tibble(solutions)
     solutions$swapped.to.model <- list(NA)
@@ -453,7 +463,6 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     rownames(solutions) <- NULL
   }
 
-  
   sln.summary <- table(info$solution)
   sln.keys <- names(sln.summary)
   table <- list()
@@ -463,7 +472,7 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
       sln.keys,
       FUN=function(key){allname[key2pos(key)[k]]})
   }
-  table$criterion <- Cri[[sln.keys]]
+  table$criterion <- values(Cri[sln.keys])
   table$times <- as.numeric(sln.summary)
   table <- as_tibble(table)
   if (isTRUE(return.models)) {
@@ -473,11 +482,13 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
       fitfunc(as.formula(form), data=data, ...)
     })
   }
-
-  criData<-Cri$data.frame()
+  
+  criData<-NULL
+  criData$Keys<-rownames(data.frame(unlist(as.list.hash(Cri))))
+  criData$Values<-data.frame(unlist(as.list.hash(Cri)))[,1]
   
   res <- list(solutions=solutions, table=table,
-              nfits=Cri$size(), nchecks=sum(info$check),
+              nfits=length(keys(Cri)), nchecks=sum(info$check),
               original=original, criData=criData)
   class(res) <- "FSA"
   return(res)
@@ -491,3 +502,4 @@ lmFSA <- function( ...) {FSA(fitfunc = lm, ...)}
 #' @export
 #' @describeIn FSA alias for \code{FSA(fitfunc=glm,...)}
 glmFSA <- function( ...) {FSA(fitfunc = glm, ...)}
+

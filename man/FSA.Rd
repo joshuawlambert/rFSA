@@ -6,10 +6,25 @@
 \alias{glmFSA}
 \title{FSA: Feasible Solution Algorithm}
 \usage{
-FSA(formula, data, fitfunc = lm, fixvar = NULL, quad = FALSE,
-  m = 2, numrs = 1, cores = 1, interactions = T, criterion = AIC,
-  minmax = "min", checkfeas = NULL, var4int = NULL,
-  min.nonmissing = 1, return.models = FALSE, fix.formula = NULL, ...)
+FSA(
+  formula,
+  data,
+  fitfunc = lm,
+  fixvar = NULL,
+  quad = FALSE,
+  m = 2,
+  numrs = 1,
+  cores = 1,
+  interactions = T,
+  criterion = AIC,
+  minmax = "min",
+  checkfeas = NULL,
+  var4int = NULL,
+  min.nonmissing = 1,
+  return.models = FALSE,
+  fix.formula = NULL,
+  ...
+)
 
 lmFSA(...)
 
@@ -45,6 +60,8 @@ glmFSA(...)
 \item{min.nonmissing}{the combination of predictors will be ignored unless this many of observations are not missing}
 
 \item{return.models}{bool value to specify whether return all the fitted models which have been checked}
+
+\item{fix.formula}{...}
 
 \item{...}{other arguments passed to fitfunc.}
 }

@@ -21,9 +21,10 @@
 #' @param var4int specification of which variables to check for marginal feasiblilty. Default is NULL
 #' @param min.nonmissing the combination of predictors will be ignored unless this many of observations are not missing
 #' @param return.models bool value to specify whether return all the fitted models which have been checked
+#' @param fix.formula ...
 #' @param ... see arguments taken by function FSA or other functions. help(FSA).
 #'
-#' @import hashmap
+#' @import hash
 #' @importFrom parallel mclapply
 #' @import tibble
 #' @import rPref
