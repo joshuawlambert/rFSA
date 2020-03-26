@@ -50,44 +50,48 @@ pFSA <- function(numFronts=2,pselExpr=NULL,plot.it=TRUE,formula, data, fitfunc=l
     stop("for Pareto Optimality you need atleast two criteria functions")
   }
   
-  fsaFit<-FSA(formula, data, fitfunc=fitfunc, fixvar=fixvar, quad=quad,
-              m=m, numrs=numrs, cores=cores, interactions=interactions,
-              criterion=criterion, minmax=minmax, checkfeas=checkfeas,
-              var4int=var4int, min.nonmissing=min.nonmissing,
-              return.models=return.models, fix.formula=fix.formula,...)
   
-  fits<-spread(fsaFit$criData,key = k,value = Values)
-  fits2<-fits
-
-  ans<-matrix(data = unlist(mclapply(X = 1:dim(fits2)[1],mc.cores = cores,FUN = function(x){
-    if(interactions==TRUE){int="*"} else {int="+"}
-    form<-as.formula(paste(all.vars(as.formula(formula))[1],"~",paste(colnames(data)[eval(parse(text=paste0("c(", fits[x,1], ")")))],collapse= int)))
-    fit_tmp<-fitfunc(formula=form, data=data,...)
-    tmp<-NULL
-    for(i in 1:(length(criterion))){
-      tmp<-c(tmp,criterion[[i]](fit_tmp))
-    }
-    tmp
-  })),byrow = TRUE,ncol = 2)
-  fits2[,-1]<-ans
+  fsaFit<-FSA(formula, data, fitfunc=lm, fixvar=NULL, quad=FALSE,
+              m=m, numrs=numrs, cores=1, interactions=FALSE,
+              criterion=criterion, minmax=minmax, checkfeas=NULL,
+              var4int=NULL,
+              return.models=FALSE, fix.formula=NULL)
+  
+  fits<-spread(fsaFit$criData,key =k,value = Values)
+  fits2<<-fits
+  
+  l<-mclapply(X = which(apply(X = fits2, MARGIN = 1, function(x){any(is.na(x))})),
+              ,mc.cores = cores,
+              FUN = function(x,...){
+                if(interactions==TRUE){int="*"} else {int="+"}
+                form<-as.formula(paste(all.vars(as.formula(formula))[1],"~",
+                                       paste(colnames(data)[eval(parse(text=paste0("c(", fits2[x,1], ")")))],
+                                             collapse= int))
+                )
+                fit_tmp<-fitfunc(formula=form, data=data)
+                for(i in 1:(length(criterion))){
+                  fits2[x,-1][,i]<<-criterion[[i]](fit_tmp)
+                }
+              }
+  )
+  
+  fits3<-fits2
   
   cname<-gsub(pattern = "high|low|[(]|[])]| ",replacement = "",x = as.character(pselExpr))
   cname<-unlist(strsplit(cname,split = "[*]"))
-  fits2<-matrix(data = unlist(fits2),ncol = length(cname)+1,byrow = FALSE)
-  fits2<-data.frame(fits2)
-  fits2[,-1]<-apply(X = fits2[,-1],MARGIN = 2,FUN = as.numeric)
-  colnames(fits2)<-c("Key",cname)
-  pbound<-psel(df = fits2,pselExpr,top=nrow(fits2))
-  pbound$.level<-pbound$.level+1
-  show(pbound)
-  if(plot.it==TRUE){
+  
+  colnames(fits3)<-c("Key",cname)
+  pbound<-psel(df = fits3,pselExpr,top_level=numFronts)
+  
+  if(length(criterion)>2 & plot.it==TRUE){
+    "Sorry, plots cannot be made for more than 2 criteria."
+  } else{if(plot.it==TRUE){
     par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
     plot(x = pbound[,2],y = pbound[,3],col=pbound$.level,xlab=cname[1],ylab=cname[2],pch=20,
          main = "Estimated Pareto Frontier Graph for \nChosen Criteria and Number of Fronts")
-    legend("topright", inset=c(-0.2,0), legend=c("Front 1","Front 2","Not Pareto"), col=c(2,3,1),pch=20, title="Est Pareto Front")
+    legend("bottomright", legend=c("Front 1","Front 2","Not Pareto"), col=c(1,2,3),pch=20, title="Est Pareto Front")
   }
-  pbound<-pbound[which(pbound$.level<=numFronts),]
+  }
+  
   return(list(fits=fits2,pbound=pbound))
 }
-
-
