@@ -50,7 +50,6 @@ pFSA <- function(numFronts=2,pselExpr=NULL,plot.it=TRUE,formula, data, fitfunc=l
   if (length(criterion)<2) {
     stop("for Pareto Optimality you need atleast two criteria functions")
   }
-<<<<<<< HEAD
   k<- NULL 
   fsaFit<-FSA(formula, data, fitfunc=fitfunc, fixvar=fixvar, quad=quad,
               m=m, numrs=numrs, cores=cores, interactions=interactions,
@@ -72,8 +71,6 @@ pFSA <- function(numFronts=2,pselExpr=NULL,plot.it=TRUE,formula, data, fitfunc=l
     tmp
   })),byrow = TRUE,ncol = 2)
   fits2[,-1]<-ans
-=======
-  
   
   fsaFit<-FSA(formula, data, fitfunc=lm, fixvar=NULL, quad=FALSE,
               m=m, numrs=numrs, cores=1, interactions=FALSE,
@@ -81,11 +78,11 @@ pFSA <- function(numFronts=2,pselExpr=NULL,plot.it=TRUE,formula, data, fitfunc=l
               var4int=NULL,
               return.models=FALSE, fix.formula=NULL)
   
-  fits<-spread(fsaFit$criData,key =k,value = Values)
+  fits<-spread(fsaFit$criData,key ="k",value = "Values")
   fits2<<-fits
   
   l<-mclapply(X = which(apply(X = fits2, MARGIN = 1, function(x){any(is.na(x))})),
-              ,mc.cores = cores,
+              mc.cores = cores,
               FUN = function(x,...){
                 if(interactions==TRUE){int="*"} else {int="+"}
                 form<-as.formula(paste(all.vars(as.formula(formula))[1],"~",
@@ -100,7 +97,6 @@ pFSA <- function(numFronts=2,pselExpr=NULL,plot.it=TRUE,formula, data, fitfunc=l
   )
   
   fits3<-fits2
->>>>>>> 950fa1e3bdd21218d701abbf8dddc24b9a728091
   
   cname<-gsub(pattern = "high|low|[(]|[])]| ",replacement = "",x = as.character(pselExpr))
   cname<-unlist(strsplit(cname,split = "[*]"))
