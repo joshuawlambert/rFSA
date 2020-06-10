@@ -487,7 +487,11 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     })
   }
   
+<<<<<<< HEAD
   criData<-data.frame(Keys=rownames(data.frame(unlist(as.list.hash(Cri)))),
+=======
+ criData<-data.frame(Keys=rownames(data.frame(unlist(as.list.hash(Cri)))),
+>>>>>>> 950fa1e3bdd21218d701abbf8dddc24b9a728091
                       Values=data.frame(unlist(as.list.hash(Cri)))[,1]
   )
   

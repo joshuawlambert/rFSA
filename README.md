@@ -17,7 +17,7 @@ For this example, let us assume that we have already found that the weight(wt) a
 
 To do this with rFSA, we could run the following code:
 ```R
-install.packages(rFSA) #or install_github("joshuawlambert/rFSA")
+install.packages(rFSA) #or devtools::install_github("joshuawlambert/rFSA")
 library(rFSA)
 data(mtcars)
 
