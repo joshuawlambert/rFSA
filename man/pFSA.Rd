@@ -75,11 +75,12 @@ list of a matrix of all models obtained from FSA (fits) and their criteria. Also
 A function using a Feasible Solution Algorithm to estimate a set of models which are on the Pareto frontiers for chosen criteria
 }
 \examples{
-
+\donttest{
 N <- 1000 #number of obs
 P <- 100 #number of variables
 data <- data.frame(matrix(rnorm(N*(P+1)), nrow = N, ncol = P+1))
 sln <- pFSA(formula = "X101~1", data = data, m = 2,  criterion = c(max_abs_resid,r.squared),
    minmax = c("min","max"),numrs = 10,numFronts = 2,
    pselExpr =rPref::low(max_abs_resid)*rPref::high(r.squared),plot.it = TRUE)
+   }
 }

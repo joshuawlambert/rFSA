@@ -35,13 +35,14 @@
 #' @export
 #'
 #' @examples
-#' 
+#'\donttest{
 #'N <- 1000 #number of obs
 #'P <- 100 #number of variables
 #'data <- data.frame(matrix(rnorm(N*(P+1)), nrow = N, ncol = P+1))
 #'sln <- pFSA(formula = "X101~1", data = data, m = 2,  criterion = c(max_abs_resid,r.squared),
 #'    minmax = c("min","max"),numrs = 10,numFronts = 2,
 #'    pselExpr =rPref::low(max_abs_resid)*rPref::high(r.squared),plot.it = TRUE)
+#'    }
 pFSA <- function(numFronts=2,pselExpr=NULL,plot.it=TRUE,formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
                  m = 2, numrs = 1, cores=1, interactions = T,
                  criterion = AIC, minmax="min", checkfeas=NULL, var4int=NULL,
