@@ -43,16 +43,6 @@ twFSA(
 \item{min.nonmissing}{the combination of predictors will be ignored unless this many of observations are not missing}
 
 \item{...}{other arguments passed to fitfunc.}
-
-\item{m}{order of terms to include. If interactions is set to TRUE then m is the order of interactions to be considered. For Subset selection (interaction=F), m is the size of the subset to examine. Defaults to 2.}
-
-\item{numrs}{number of random starts to perform.}
-
-\item{interactions}{whether to include interactions in model. Defaults to TRUE.}
-
-\item{return.models}{bool value to specify whether return all the fitted models which have been checked}
-
-\item{fix.formula}{...}
 }
 \value{
 matrix of results

@@ -133,7 +133,11 @@ FSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     
     nfits <- nfits + fit$nfits
     nchecks <- nchecks + fit$nchecks
-    criData<-rbind(criData,cbind(fit$criData,k))
+    
+    criData<-rbind(data.frame(criData),
+                   data.frame(Keys=fit$criData$Keys,Values=fit$criData$Values,
+                              k=k)
+                   )
   }
 
   P <- ncol(data)
@@ -483,9 +487,9 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     })
   }
   
-  criData<-NULL
-  criData$Keys<-rownames(data.frame(unlist(as.list.hash(Cri))))
-  criData$Values<-data.frame(unlist(as.list.hash(Cri)))[,1]
+  criData<-data.frame(Keys=rownames(data.frame(unlist(as.list.hash(Cri)))),
+                      Values=data.frame(unlist(as.list.hash(Cri)))[,1]
+  )
   
   res <- list(solutions=solutions, table=table,
               nfits=length(keys(Cri)), nchecks=sum(info$check),
