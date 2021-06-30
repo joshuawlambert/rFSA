@@ -241,8 +241,8 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
   }
 
 
-  if (!(is.null(var4int) | is.character(var4int) & length(var4int)==1)) {
-    stop("var4int should be NULL or a character scalar")
+  if (!(is.null(var4int) | is.character(var4int))) {
+    stop("var4int should be NULL or a character vector")
   }
   
   if (!((is.numeric(min.nonmissing) | is.integer(min.nonmissing))
@@ -278,7 +278,17 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
     starts <- replicate(n=numrs, expr=pos2key(sort(sample(xpos, m, replace = F))))
     starts[length(starts)]<-pos2key(which(colnames(data) %in% checkfeas))
   }
-
+  
+  if(length(var4int)>=2){
+    starts<-replicate(n=numrs, expr = {
+      x<-sort(sample(xpos, m, replace = F))
+      while(sum(x %in% which(allname %in% var4int))!=length(var4int)){
+        x<-sort(sample(xpos, m, replace = F))
+      }
+      pos2key(x)
+    })
+  }
+  
   ##************************************************************
   ## optimization
   ##************************************************************
@@ -331,11 +341,13 @@ fitFSA <- function(formula, data, fitfunc=lm, fixvar = NULL, quad = FALSE,
         tmp <- swaps(cur = key2pos(x), n=P+1, quad = quad,yindex = ypos)
 
         if (!is.null(var4int)) {
-          tmp <- tmp[,which(apply(tmp==which(allname==var4int), MARGIN=2, FUN=any))]
+          tmp <- tmp[,which(apply(apply(tmp,2,function(x){x %in% which(allname %in% var4int)}), MARGIN=2, FUN=function(x){sum(x)==length(var4int)}))]
         }
+        if(is.null(dim(tmp))){tmp<-t(t(tmp))}
         apply(tmp, MARGIN=2, FUN=pos2key)
       }
     )
+
     names(steps) <- unsolved.cur
     info$check[unsolved.mask] <- info$check[unsolved.mask] + sapply(steps,length)
     
@@ -506,4 +518,3 @@ lmFSA <- function( ...) {FSA(fitfunc = lm, ...)}
 #' @export
 #' @describeIn FSA alias for \code{FSA(fitfunc=glm,...)}
 glmFSA <- function( ...) {FSA(fitfunc = glm, ...)}
-
